@@ -11,3 +11,7 @@ Developed by Group 3: Aymaan (Manager), Cameron, Chris, Benson, Shreyas, Stanley
 
 [Software Metrics](https://drive.google.com/drive/folders/13xDGG2UANGKH746DA_j6Fg8lq9CqjAPp?usp=sharing) (Must be logged in to UMass email)
 
+Installation command: `npm run install:all`
+Start server command: `npm run dev` (Builds and starts Express backend at localhost:3000, and starts Vite/React frontend with hot reload at localhost:5000)
+Only start frontend server command: `npm run dev:client` (Has hot reload)
+Only start backend server command: `npm run dev:server` (Has Express routing and a connection to MongoDB, but needs to be restarted for changes to apply)
