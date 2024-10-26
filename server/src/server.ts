@@ -28,7 +28,7 @@ mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
 app.use(express.static(path.join(__dirname, "..", "..", "client", "build")));
 
 // API routes
-app.get("/api/hello", requireAuth({signInUrl: '/test'}), (req, res) => {
+app.get("/api/hello", requireAuth({signInUrl: '/userIsLoggedOut'}), (req, res) => {
   res.send({ message: "Hello from Express! You are logged in :)" }); // Not sure if this is working. Docs: https://clerk.com/docs/references/express/overview
 });
 
