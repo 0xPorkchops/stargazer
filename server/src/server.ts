@@ -3,10 +3,8 @@ import path from "path";
 import mongoose from "mongoose";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import {
-  ClerkExpressRequireAuth,
-  ClerkExpressWithAuth,
-} from "@clerk/clerk-sdk-node";
+import { clerkMiddleware, requireAuth } from '@clerk/express'
+
 import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
 
@@ -16,6 +14,8 @@ const __dirname = dirname(__filename);
 const app = express();
 app.use(cors());
 const port = process.env.PORT || 3000;
+
+app.use(clerkMiddleware());
 
 // Connect to MongoDB
 /*
@@ -28,8 +28,8 @@ mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
 app.use(express.static(path.join(__dirname, "..", "..", "client", "build")));
 
 // API routes
-app.get("/api/hello", ClerkExpressRequireAuth(), (req, res) => {
-  res.send({ message: "Hello from Express! You are logged in :)" });
+app.get("/api/hello", requireAuth({signInUrl: '/test'}), (req, res) => {
+  res.send({ message: "Hello from Express! You are logged in :)" }); // Not sure if this is working. Docs: https://clerk.com/docs/references/express/overview
 });
 
 // The "catchall" handler: for any request that doesn't

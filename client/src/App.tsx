@@ -1,62 +1,43 @@
-import React from "react";
-import logo from "./logo.svg";
-import { Button } from "./components/button";
-import { Label } from "./components/label";
-import { RadioGroup, RadioGroupItem } from "./components/radioGroup";
-import { Toaster } from "./components/toaster";
-import { useToast } from "./components/use-toast";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-} from "@clerk/clerk-react";
-
-export const ToastDemo = () => {
-  const { toast } = useToast();
-
-  return (
-    <Button
-      onClick={() => {
-        toast({
-          title: "Scheduled: Catch up",
-          description: "Friday, February 10, 2023 at 5:57 PM",
-        });
-      }}
-    >
-      Show Toast
-    </Button>
-  );
-};
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import { Button } from './components/ui/button'
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
 
 function App() {
-  return (
-    <div className="App">
-      <h1 className="bg-green-500">
-        If this text is green, tailwindcss is at least somewhat working.
-      </h1>
-      <Button>Test Button</Button>
-      <RadioGroup defaultValue="option-one">
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="option-one" id="option-one" />
-          <Label htmlFor="option-one">Option One</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="option-two" id="option-two" />
-          <Label htmlFor="option-two">Option Two</Label>
-        </div>
-      </RadioGroup>
-      <ToastDemo></ToastDemo>
-      <Toaster />
+  const [count, setCount] = useState(0)
 
+  return (
+    <>
+      <div className="bg-green-500">
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1 className="bg-green-500">Vite + React</h1>
+      <Button>Click me</Button>
       <SignedOut>
         <SignInButton />
       </SignedOut>
       <SignedIn>
         <UserButton />
       </SignedIn>
-    </div>
-  );
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  )
 }
 
-export default App;
+export default App
