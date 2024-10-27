@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import mongoose from "mongoose";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express'
@@ -17,13 +16,6 @@ const port = process.env.PORT || 3000;
 
 app.use(clerkMiddleware())
 
-// Connect to MongoDB
-/*
-const mongoUri = process.env.MONGO_URI || 'your-mongodb-uri';
-mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
-*/
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, "..", "..", "client", "build")));
 
