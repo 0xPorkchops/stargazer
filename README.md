@@ -15,10 +15,14 @@ Developed by Group 3: Aymaan (Manager), Cameron, Chris, Benson, Shreyas, Stanley
 
 ## Installation
 
-To install all required dependencies, run:
-```bash
-npm run install:all
-```
+1. To install all required dependencies, run:
+    ```bash
+    npm run install:all
+    ```
+
+2. Set up environment variables:
+    - Create a `.env.local` file in the client directory and add the client-side environment variables outlined in `.env.local.example`
+    - Create a `.env` file in the server directory and add the server-side environment variables outlined in `.env.example`
 
 ## Starting the Application
 
