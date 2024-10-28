@@ -5,8 +5,28 @@ import { Button } from './components/ui/button'
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from '@clerk/clerk-react'
 
 function App() {
-  const [count, setCount] = useState(0);
-  fetchUserData();
+  const [userData, setUserData] = useState(null);
+  const { getToken } = useAuth();
+
+  async function fetchUserData() {
+    const token = await getToken();
+
+    const response = await fetch('http://localhost:3000/api/user', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include',  // If your backend uses cookies for session
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    setUserData(data);
+  }
+
   return (
     <>
       <div className="bg-green-500">
@@ -18,7 +38,7 @@ function App() {
         </a>
       </div>
       <h1 className="bg-green-500">Vite + React</h1>
-      <Button>Click me</Button>
+      <Button onClick={fetchUserData}>Fetch User Data</Button>
       <SignedOut>
         <SignInButton />
       </SignedOut>
@@ -26,40 +46,15 @@ function App() {
         <UserButton />
       </SignedIn>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      {userData && (
+        <div className="user-data">
+          <h2>User Data:</h2>
+          <pre>{JSON.stringify(userData, null, 2)}</pre>
+        </div>
+      )}
     </>
   )
 }
-
-
-async function fetchUserData() {
-  const { getToken } = useAuth();
-  const token = await getToken();
-
-  const response = await fetch('http://localhost:3000/api/user', {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-    credentials: 'include',  // If your backend uses cookies for session
-  });
-
-  if (!response.ok) {
-    throw new Error(`Error: ${response.statusText}`);
-  }
-
-  const userData = await response.json();
-  console.log(userData);
-}
-
 
 export default App
