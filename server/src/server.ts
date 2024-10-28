@@ -46,8 +46,9 @@ async function startServer() {
     // Serve static files from the React app
     app.use(express.static(path.join(__dirname, '..', '..', 'client', 'build')));
 
-    app.get('/api/hello', (req, res) => {
-      res.send({ message: 'Hello from Express!' });
+    app.get('/api/id', requireAuth({ signInUrl: '/sign-in' }), async (req, res) => {
+      const { userId } = getAuth(req);
+      res.send({ message: userId});
     });
 
     // API routes
