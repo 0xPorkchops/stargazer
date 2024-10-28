@@ -5,25 +5,30 @@
       "src": "server/src/server.ts",
       "use": "@vercel/node",
       "config": {
-        "distDir": "server/build"
+        "outputDirectory": "server/build"
       }
     },
     {
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "client/build"
+        "distDir": "build",
+        "buildCommand": "cd client && npm run build"
       }
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/server/build/server.js"
+      "dest": "server/src/server.ts"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "client/build/static/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/client/build/index.html"
+      "dest": "client/build/index.html"
     }
   ]
 }
