@@ -7,25 +7,37 @@ function App() {
 
   return (
     <>
-      <h1 className="bg-green-500">Stargazer</h1>
-      <Button>Don't Click Me</Button>
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <header className="flex justify-between items-center px-8 py-4 bg-gray-800 text-white">
+       {/* Logo */}
+       <div className="flex items-center">
+         <img src="SGlogo2.png" alt="Logo" className="h-24 mr-10" />
+         <h1 className="text-xl font-bold"></h1>
+       </div>
+
+
+       {/* Navigation Links */}
+       <nav className="flex space-x-6">
+         <a href="#" className="hover:text-gray-300">Weather & Star Map</a>
+         <a href="#" className="hover:text-gray-300">Events </a>
+         <a href="#" className="hover:text-gray-300">Home</a>
+       </nav>
+
+
+       {/* Authentication Buttons */}
+       <div className="flex items-center space-x-4">
+         <SignedOut>
+           <SignInButton>
+             <Button className="bg-blue-500 text-white px-4 py-2 rounded">
+               Sign Up
+             </Button>
+           </SignInButton>
+         </SignedOut>
+         <SignedIn>
+           <UserButton />
+         </SignedIn>
+       </div>
+     </header>
+
     </>
   )
 }
