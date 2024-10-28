@@ -5,7 +5,7 @@
       "src": "server/src/server.ts",
       "use": "@vercel/node",
       "config": {
-        "distDir": "build"
+        "distDir": "server/build"
       }
     },
     {
