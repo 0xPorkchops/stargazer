@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/package.json",
+      "src": "server/src/server.ts",
       "use": "@vercel/node",
       "config": {
         "distDir": "build"
@@ -14,6 +14,16 @@
       "config": {
         "distDir": "build"
       }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/server/build/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "dest": "/client/build/index.html"
     }
   ],
   "routes": [
