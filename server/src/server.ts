@@ -14,14 +14,13 @@ const app = express();
 app.use(cors());
 const port = process.env.PORT || 3000;
 
-app.use(clerkMiddleware())
+// app.use(clerkMiddleware())
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, "..", "..", "client", "build")));
 
 // API routes
-// This example is not working. clerk.d.ts can be deleted if this example is not used.
-app.get('/api/hello', clerkMiddleware(), async (req, res) => {
+app.get('/api/hello', requireAuth(), async (req, res) => {
   const { userId, sessionClaims } = getAuth(req);
   if (!userId) {
     return res.status(401).send('Unauthorized');
