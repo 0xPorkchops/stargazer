@@ -23,7 +23,7 @@
     },
     {
       "source": "/(.*)",
-      "dest": "/client/build/index.html"
+      "destination": "/client/build/index.html"
     }
   ],
   "routes": [
