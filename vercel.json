@@ -1,6 +1,23 @@
 {
   "version": 2,
-  "buildCommand": "npm run build --prefix client && npm run build --prefix server",
-  "outputDirectory": "server/build",
+  "builds": [
+    {
+      "src": "server/server.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server/server.ts"
+    }
+  ],
   "installCommand": "npm install --prefix client && npm install --prefix server"
 }
