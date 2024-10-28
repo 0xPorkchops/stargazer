@@ -25,15 +25,5 @@
       "source": "/(.*)",
       "destination": "/client/build/index.html"
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server/build/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/client/build/index.html"
-    }
   ]
 }
