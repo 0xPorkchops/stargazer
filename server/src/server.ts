@@ -19,6 +19,11 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
+app.use(cors({
+  origin: 'http://localhost:5000',
+  credentials: true,  // Allow credentials if needed for cookies/sessions
+}));
+
 
 // Connect to MongoDB
 /*
@@ -29,6 +34,7 @@ mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
 */
 
 interface User{
+  clerkUserId: string;
   _id : string;
   _firstname: string;
   _lastname: string;
@@ -48,12 +54,24 @@ async function startServer() {
     });
 
     // API routes
-    app.get('api/user', async (req, res) => {
+    app.get('api/user', requireAuth(), async (req, res) => {
+
+      const { userId } = req.auth!;
+      if (!userId){
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+      
       try {
+        console.log(userId);
+
         const db = dbConnection.getDb();
         const usersCollection: Collection<User> = db.collection('users');
-        const users = await usersCollection.find({}).toArray();
-        res.json(users);
+        const user = await usersCollection.findOne({clerkUserId: userId});
+        
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(user);
       } catch (error) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }

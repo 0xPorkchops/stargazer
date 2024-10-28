@@ -2,11 +2,11 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import { Button } from './components/ui/button'
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
+import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from '@clerk/clerk-react'
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  const [count, setCount] = useState(0);
+  fetchUserData();
   return (
     <>
       <div className="bg-green-500">
@@ -39,5 +39,27 @@ function App() {
     </>
   )
 }
+
+
+async function fetchUserData() {
+  const { getToken } = useAuth();
+  const token = await getToken();
+
+  const response = await fetch('http://localhost:3000/api/user', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    credentials: 'include',  // If your backend uses cookies for session
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error: ${response.statusText}`);
+  }
+
+  const userData = await response.json();
+  console.log(userData);
+}
+
 
 export default App
