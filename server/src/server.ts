@@ -1,7 +1,11 @@
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express'
+
+import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
+import cors from "cors";
 
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
@@ -10,6 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
+app.use(cors());
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
