@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import { Button } from './components/ui/button'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
 
@@ -9,16 +7,8 @@ function App() {
 
   return (
     <>
-      <div className="bg-green-500">
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1 className="bg-green-500">Vite + React</h1>
-      <Button>Click me</Button>
+      <h1 className="bg-green-500">Stargazer</h1>
+      <Button>Don't Click Me</Button>
       <SignedOut>
         <SignInButton />
       </SignedOut>
