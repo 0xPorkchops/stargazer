@@ -50,3 +50,8 @@ To start only the backend server with Express routing and MongoDB connection, ru
 npm run dev:server
 ```
 > Note: The backend server requires a manual restart for client and server changes to take effect.
+
+## Adding shadcn/ui components
+
+See [shadcn/ui](https://ui.shadcn.com/docs/components/accordion) for a list of available UI components and their installation commands.
+> For instance, `npx shadcn@latest add button` adds a Button component to the `client/components/ui` folder, which can be used as `<Button />`, like any other React component.
