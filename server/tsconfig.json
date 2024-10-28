@@ -14,7 +14,6 @@
     "types": ["node"]
   },
   "include": [
-    "src",
-    "clerk.d.ts"
+    "src"
 ]
 }
