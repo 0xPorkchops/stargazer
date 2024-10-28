@@ -34,7 +34,7 @@ mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
 */
 
 interface User{
-  clerkUserId: string;
+  userId: string;
   _id : string;
   _firstname: string;
   _lastname: string;
