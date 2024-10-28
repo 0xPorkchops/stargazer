@@ -1,11 +1,5 @@
 {
   "version": 2,
-  "env": { 
-    "MONGO_URI": "@MONGO_URI",
-    "CLERK_PUBLISHABLE_KEY": "@CLERK_PUBLISHABLE_KEY",
-    "VITE_CLERK_PUBLISHABLE_KEY": "@VITE_CLERK_PUBLISHABLE_KEY",
-    "CLERK_SECRET_KEY": "@CLERK_SECRET_KEY"
-  },
   "builds": [
     {
       "src": "server/build/server.js",
