@@ -15,10 +15,14 @@ Developed by Group 3: Aymaan (Manager), Cameron, Chris, Benson, Shreyas, Stanley
 
 ## Installation
 
-To install all required dependencies, run:
-```bash
-npm run install:all
-```
+1. To install all required dependencies, run:
+    ```bash
+    npm run install:all
+    ```
+
+2. Set up environment variables:
+    - Create a `.env.local` file in the client directory and add the client-side environment variables outlined in `.env.local.example`
+    - Create a `.env` file in the server directory and add the server-side environment variables outlined in `.env.example`
 
 ## Starting the Application
 
@@ -46,3 +50,8 @@ To start only the backend server with Express routing and MongoDB connection, ru
 npm run dev:server
 ```
 > Note: The backend server requires a manual restart for client and server changes to take effect.
+
+## Adding shadcn/ui components
+
+See [shadcn/ui](https://ui.shadcn.com/docs/components/accordion) for a list of available UI components and their installation commands.
+> For instance, `npx shadcn@latest add button` adds a Button component to the `client/components/ui` folder, which can be used as `<Button />`, like any other React component.

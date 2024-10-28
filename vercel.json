@@ -1,7 +1,23 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:all",
-  "outputDirectory": "client/build",
-  "installCommand": "npm run install:all",
-  "devCommand": "npm run start:all"
+  "builds": [
+    {
+      "src": "server/server.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server/server.ts"
+    }
+  ],
+  "installCommand": "npm install --prefix client && npm install --prefix server"
 }
