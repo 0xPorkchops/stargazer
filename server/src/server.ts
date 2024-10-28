@@ -51,9 +51,9 @@ async function startServer() {
     });
 
     // API routes
-    app.get('api/user', requireAuth(), async (req, res) => {
+    app.get('/api/user', requireAuth(), async (req, res) => {
 
-      const { userId } = req.auth!;
+      const { userId } = getAuth(req);
       if (!userId){
         return res.status(401).json({ error: 'User not authenticated' });
       }
