@@ -3,8 +3,28 @@ import { Button } from './components/ui/button'
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from '@clerk/clerk-react'
 
 function App() {
- 
-
+  
+  const { getToken } = useAuth();
+  async function fetchUserData() {
+    
+    const token = await getToken();
+  
+    const response = await fetch('http://localhost:3000/api/user', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include',  // If your backend uses cookies for session
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+  
+    const userData = await response.json();
+    console.log(userData);
+  }
+  
   return (
     <>
       <header className="flex justify-between items-center px-8 py-4 bg-gray-800 text-white">
@@ -27,7 +47,7 @@ function App() {
        <div className="flex items-center space-x-4">
          <SignedOut>
            <SignInButton>
-             <Button className="bg-blue-500 text-white px-4 py-2 rounded">
+             <Button onClick={fetchUserData} className="bg-blue-500 text-white px-4 py-2 rounded">
                Sign Up
              </Button>
            </SignInButton>
@@ -43,25 +63,6 @@ function App() {
 }
 
 
-async function fetchUserData() {
-  const { getToken } = useAuth();
-  const token = await getToken();
-
-  const response = await fetch('http://localhost:3000/api/user', {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-    credentials: 'include',  // If your backend uses cookies for session
-  });
-
-  if (!response.ok) {
-    throw new Error(`Error: ${response.statusText}`);
-  }
-
-  const userData = await response.json();
-  console.log(userData);
-}
 
 
 export default App
