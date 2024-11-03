@@ -23,24 +23,8 @@
       "dest": "server/src/server.ts"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/client/assets/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/client/favicon.ico"
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/client/robots.txt"
-    },
-    {
-      "src": "/vite.svg",
-      "dest": "/client/vite.svg"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/client/index.html"
+      "dest": "/client/"
     }
   ]
 }
