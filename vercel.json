@@ -1,7 +1,7 @@
 {
     "version": 2,
     "buildCommand": "cd client && npm run build",
-    "outputDirectory": "client/build",
+    "outputDirectory": "client/dist",
     "builds": [
       {
         "src": "client/package.json",
@@ -22,7 +22,7 @@
       },
       {
         "src": "/(.*)",
-        "dest": "client/build/$1"
+        "dest": "client/dist/$1"
       }
     ]
   }
