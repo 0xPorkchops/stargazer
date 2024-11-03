@@ -1,0 +1,28 @@
+{
+    "version": 2,
+    "buildCommand": "cd client && npm run build",
+    "outputDirectory": "client/build",
+    "builds": [
+      {
+        "src": "client/package.json",
+        "use": "@vercel/static"
+      },
+      {
+        "src": "server/src/*.ts",
+        "use": "@vercel/node",
+        "config": {
+          "distDir": "server/build"
+        }
+      }
+    ],
+    "routes": [
+      {
+        "src": "/api/(.*)",
+        "dest": "server/src/server.ts"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "client/build/$1"
+      }
+    ]
+  }
