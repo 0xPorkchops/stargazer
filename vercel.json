@@ -3,9 +3,10 @@
   "builds": [
     {
       "src": "client/package.json",
-      "use": "@vercel/vite",
+      "use": "@vercel/static-build",
       "config": {
-        "root": "client"
+        "distDir": "build",
+        "buildCommand": "cd client && npm install && npm run build"
       }
     },
     {
@@ -26,7 +27,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/client/$1"
+      "dest": "/client/build/$1"
     }
   ]
 }
