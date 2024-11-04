@@ -6,7 +6,7 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build",
-        "buildCommand": "cd client && npm install && npm run build && cp -r build/* ../build/ && rm -rf build"
+        "buildCommand": "cd client && npm install && npm run build && mv build/* . && rm -rf build"
       }
     },
     {
