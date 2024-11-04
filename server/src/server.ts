@@ -76,7 +76,7 @@ async function startServer() {
     });
 
     // Testing Express routing for React files on Vercel
-    app.get('/express', (req, res) => {
+    app.get('/api/express', (req, res) => {
       res.sendFile(path.join(__dirname, '..', '..', 'client', 'build', 'index.html'));
     });
 
