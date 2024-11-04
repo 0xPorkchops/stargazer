@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
 build: {
-  outDir: '../build', // For Express to serve static React build files
+  outDir: 'build', // For Express to serve static React build files
   emptyOutDir: true,
 },
 server: {
