@@ -11,7 +11,8 @@ export default defineConfig({
     },
   },
 build: {
-  outDir: 'build', // For Express to serve static React build files
+  outDir: '../build', // For Express to serve static React build files
+  emptyOutDir: true,
 },
 server: {
   port: 5000, // Change this to your desired port
