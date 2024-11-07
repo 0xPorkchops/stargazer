@@ -74,12 +74,20 @@ async function startServer() {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
     });
-    // The "catchall" handler: for any request that doesn't
-    // match one above, send back React's index.html file.
+
+    /* 
+    The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
+    Vercel routes static/client-side files instead of Express, but this can be changed in vercel.json if needed.
+    To let Express handle routing on Vercel, the only route in vercel.json should be: {"src": "/(.*)","dest": "server/src/server.ts"}
+    This would be inefficient as it would spin up an edge function for this entire Express app for every cold request.
+    So let's stick to using Express for the API and let Vercel handle the client-side routing.
+    */
+
+    /*
     app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname, '..', '..', 'client', 'build', 'index.html'));
     });
-
+    */
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {

@@ -1,11 +1,13 @@
 
+import { useState } from 'react'
 import { Button } from './components/ui/button'
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from '@clerk/clerk-react'
 
 
 function App() {
-  
+  const [userData, setUserData] = useState(null);
   const { getToken } = useAuth();
+
   async function fetchUserData() {
     
     const token = await getToken();
@@ -23,7 +25,7 @@ function App() {
     }
   
     const userData = await response.json();
-    console.log(userData);
+    setUserData(userData);
   }
   
   return (
@@ -48,7 +50,7 @@ function App() {
        <div className="flex items-center space-x-4">
          <SignedOut>
            <SignInButton>
-             <Button onClick={fetchUserData} className="bg-blue-500 text-white px-4 py-2 rounded">
+             <Button className="bg-blue-500 text-white px-4 py-2 rounded">
                Sign Up
              </Button>
            </SignInButton>
@@ -58,6 +60,13 @@ function App() {
          </SignedIn>
        </div>
      </header>
+     <Button onClick={fetchUserData}>Fetch User Data</Button>
+     {userData && (
+        <div className="user-data">
+          <h2>User Data:</h2>
+          <pre>{JSON.stringify(userData, null, 2)}</pre>
+        </div>
+      )}
 
     </>
   )
