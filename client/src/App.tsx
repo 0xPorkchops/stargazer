@@ -40,9 +40,9 @@ function App() {
 
        {/* Navigation Links */}
        <nav className="flex space-x-6">
-         <a href="#" className="hover:text-gray-300">Weather & Star Map</a>
-         <a href="#" className="hover:text-gray-300">Events </a>
-         <a href="#" className="hover:text-gray-300">Home</a>
+         <Button onClick={()=>{console.log("WOW")}}className="hover:text-gray-300">Weather & Star Map</Button>
+         <Button className="hover:text-gray-300">Events </Button>
+         <Button className="hover:text-gray-300">Home</Button>
        </nav>
 
 
