@@ -2,6 +2,7 @@
 import { Button } from './components/ui/button'
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from '@clerk/clerk-react'
 
+
 function App() {
   
   const { getToken } = useAuth();
