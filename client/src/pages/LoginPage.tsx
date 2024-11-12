@@ -1,6 +1,6 @@
 
 import { useState } from 'react'
-import { Button } from '../components/ui/button'
+import { Button } from '../components/ui/Button'
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from '@clerk/clerk-react'
 
 
