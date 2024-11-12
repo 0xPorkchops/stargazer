@@ -6,7 +6,9 @@ import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from '@clerk/c
 
 function LoginPage() {
   const [userData, setUserData] = useState(null);
-  const { getToken } = useAuth();
+
+  const { getToken} = useAuth();
+
 
   async function fetchUserData() {
     
@@ -57,7 +59,7 @@ function LoginPage() {
            </SignInButton>
          </SignedOut>
          <SignedIn>
-           <UserButton />
+           <UserButton /> 
          </SignedIn>
        </div>
      </header>
