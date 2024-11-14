@@ -75,6 +75,9 @@ async function startServer() {
       }
     });
 
+    app.get('/api/weather', (req, res)=>{
+      
+    });
     /* 
     The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
     Vercel routes static/client-side files instead of Express, but this can be changed in vercel.json if needed.
