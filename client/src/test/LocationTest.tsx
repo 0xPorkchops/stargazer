@@ -16,8 +16,9 @@ export default function LocationTest(){
     
         fetchGeoLocation();
       }, []);
-    console.log(coordinates);
+    
     return (<>
         <h1>Location Test</h1>
+        <h1>{coordinates?.latitude}, {coordinates?.longitude}</h1>
     </>)
 }
