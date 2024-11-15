@@ -51,7 +51,37 @@ npm run dev:server
 ```
 > Note: The backend server requires a manual restart for client and server changes to take effect.
 
-## Adding shadcn/ui components
+## Dev Notes
+
+### Adding shadcn/ui components
 
 See [shadcn/ui](https://ui.shadcn.com/docs/components/accordion) for a list of available UI components and their installation commands.
 > For instance, `npx shadcn@latest add button` adds a Button component to the `client/components/ui` folder, which can be used as `<Button />`, like any other React component.
+
+### Fetching and mutating data on client
+
+We use SWR for client-side data requests. We might use SWR or react-hook-form for mutation.
+
+#### Getting data upon page load
+```javascript
+import { fetcher } from './lib/utils'
+// ...
+const { data, isLoading } = useSWR('http://localhost:3000/api/user', fetcher)
+// ...
+      { isLoading ? <div>Loading...</div> : null }
+      { data ? (<div>{JSON.stringify(data, null, 2)}</div>) : null }
+```
+
+#### Getting data upon button click
+```javascript
+import { fetcher } from './lib/utils'
+import React from 'react'
+// ...
+  const [shouldFetch, setShouldFetch] = React.useState(false);
+  const { data, isLoading } = useSWR(shouldFetch ? 'http://localhost:3000/api/user' : null, fetcher)
+// ...
+      <Button onClick={() => setShouldFetch(true)}>Fetch User Data</Button>
+      { isLoading ? <div>Loading...</div> : null }
+      { data ? (<div>{JSON.stringify(data, null, 2)}</div>) : null }
+
+```
