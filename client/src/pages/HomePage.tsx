@@ -1,6 +1,6 @@
 import SignOut from '../components/SignOut'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '../components/ui/Button'
+import { Button } from '../components/ui/button'
 function HomePage(){
     const navigate = useNavigate();
     return (

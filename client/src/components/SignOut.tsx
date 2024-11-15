@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react';
-import { Button } from './ui/Button'
+import { Button } from './ui/button';
 function SignOutButton(){
     const { signOut } = useAuth();
     const handleLogout = () => {
