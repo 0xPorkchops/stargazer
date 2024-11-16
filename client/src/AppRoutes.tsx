@@ -4,7 +4,6 @@ import Weather from './pages/Weather';
 import StarMap from './pages/StarMap';
 import TestingPage from './pages/TestingPage';
 import LocationTest from './test/LocationTest';
-import LoginPage from './pages/LoginPage';
 
 function AppRoutes() {
   return (
@@ -14,7 +13,6 @@ function AppRoutes() {
       <Route path="/starmap" element={<StarMap />} />
       <Route path="/testing" element={<TestingPage />} />
       <Route path="/locationtest" element={<LocationTest />} />
-      <Route path="/login" element={<LoginPage />} />
     </Routes>
   );
 }
