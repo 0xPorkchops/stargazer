@@ -37,6 +37,12 @@ interface User{
   _lastname: string;
   _username: string;
   _email: string;
+
+  _last_location: {
+    latitude : number;
+    longitude: number;
+    time : Date;
+  };
 }
 
 async function startServer() {
@@ -65,11 +71,35 @@ async function startServer() {
         const db = dbConnection.getDb();
         const usersCollection: Collection<User> = db.collection('users');
         const user = await usersCollection.findOne({clerkUserId: userId});
-        
-        if (!user) {
-          return res.status(404).json({ error: 'User not found' });
+
+        if (user) { // user exists, return user
+          return res.status(200).json(user);
         }
-        res.json(user);
+
+        const {_firstname, _lastname, _username, _email, _last_location} = req.body;
+        if (!_firstname || !_lastname || !_username || !_email){
+          return res.status(400).json({error : "Missing user fields"});
+        }
+
+        const newuser = {
+          clerkUserId:userId, 
+          _id:userId, 
+          _firstname,
+          _lastname, 
+          _username,
+          _email, 
+          _last_location : 
+          _last_location ? {
+            ..._last_location, time:new Date()
+          } : undefined, 
+        };
+
+        const result = await usersCollection.insertOne(newuser);
+        if (result.acknowledged){
+          res.status(201).json(user);
+        } else {
+          res.status(500).json({error: "Failed to create user"})
+        }
       } catch (error) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
