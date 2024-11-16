@@ -37,6 +37,20 @@ interface User{
   _lastname: string;
   _username: string;
   _email: string;
+  settings?: UserSettings;
+}
+
+interface UserSettings {
+  name: string;
+  latitude: number;
+  longitude: number;
+  theme: 'dark' | 'light' | 'red';
+  notifyEmail: boolean;
+  notifyPhone: boolean;
+  email: string;
+  phone: string;
+  phoneProvider: string;
+  lastUpdated: Date;
 }
 
 async function startServer() {
@@ -52,7 +66,8 @@ async function startServer() {
     });
 
     // API routes
-    app.get('/api/user', requireAuth(), async (req, res) => {
+    app.route('/api/user')
+    .get(requireAuth(), async (req, res) => {
 
       const { userId } = getAuth(req);
       if (!userId){
@@ -72,6 +87,84 @@ async function startServer() {
         res.json(user);
       } catch (error) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      }
+    })
+    .post(requireAuth(), async (req, res) => {
+      console.log("Place holder for post at /api/user")
+    })
+    .put(requireAuth(), async (req, res) => {
+      console.log("Place holder for put at /api/user");
+    })
+
+
+
+    app.route('/api/settings')
+    .get(requireAuth(), async (req, res) => {
+      const {userId} = getAuth(req);
+      if (!userId) {
+        return res.status(401).json({error: "User not authenticated"});
+      }
+
+      try {
+        const db = dbConnection.getDb();
+        const usersCollection: Collection<User> = db.collection('users');
+        const user = await usersCollection.findOne({ clerkUserId: userId });
+
+        const defaultSettings: UserSettings = {
+          name: "ABC" + ' ' + "XYZ",
+          latitude: 40.7128,
+          longitude: -74.0060,
+          theme: 'light',
+          notifyEmail: true,
+          notifyPhone: true,
+          email: " .  ",
+          phone: '',
+          phoneProvider: 'AT&T',
+          lastUpdated: new Date()
+        };
+        return res.json(defaultSettings);
+
+        // if (!user) {
+        //   return res.status(404).json({ error: 'User not found' });
+        // }
+
+        // // If no settings exist yet, return default settings
+        // if (!user.settings) {
+          
+        // }
+
+        // res.json(user.settings)
+      } catch (error) {
+        res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      }
+    })
+    .post(requireAuth(), async (req, res) => {
+      const { userId } = getAuth(req);
+        if (!userId) {
+          return res.status(401).json({ error: 'User not authenticated' });
+        }
+      try{
+        const db = dbConnection.getDb();
+        const usersCollection: Collection<User> = db.collection('users');
+
+        // Validate the request body
+        const settings: UserSettings = {
+          ...req.body,
+          lastUpdated: new Date()
+        };
+
+        // Update the user's settings
+        const result = await usersCollection.updateOne(
+          { clerkUserId: userId },
+          { $set: { settings: settings } }
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(settings);
+      } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
     });
 
