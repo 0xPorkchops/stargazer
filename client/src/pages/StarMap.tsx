@@ -49,7 +49,6 @@ function StarMap() {
     <div className="bg-gray-900 text-white min-h-screen flex">
       {/* Form Section on the left */}
       <div className="flex flex-col items-start justify-start w-1/3 p-6">
-        <h1 className="text-4xl text-center mb-6">StarGazer</h1>
         <h2 className="text-2xl text-center mb-6">Generate your Star Map!</h2>
 
         <form onSubmit={handleSubmit} className="input-form w-full max-w-xs bg-gray-800 p-6 rounded-lg shadow-md">
@@ -135,9 +134,9 @@ function StarMap() {
       </div>
 
       {/* Star Map Section on the right of the page*/}
-      <div className="flex flex-col items-center justify-center w-2/3 bg-gray-900 p-6">
+      <div className="flex flex-col items-center justify-center w-2/3 bg-gray-900 p-6 -mt-20">
         {/* The image for the star map is displayed here */}
-        <div className="star-map-container w-full h-full flex items-center justify-center bg-gray-900">
+        <div className="star-map-container w-full h-full flex items-center justify-center bg-gray-900 -mt-20">
           {message && (
             <img
               src={message} 
