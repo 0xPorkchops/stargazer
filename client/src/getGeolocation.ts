@@ -1,4 +1,4 @@
-export function getGeolocation():Promise<{ userLat: number; userLong: number }>{
+export async function getGeolocation():Promise<{ userLat: number; userLong: number }>{
   return new Promise((resolve, reject)=>{
     if(navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(

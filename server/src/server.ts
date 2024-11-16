@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express'
+import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
 
 import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
@@ -75,8 +75,16 @@ async function startServer() {
       }
     });
 
-    app.get('/api/weather', (req, res)=>{
+    app.get('/api/weather', async (req, res)=>{
+      const {paramLat = '42.3952875', paramLong = '-72.5310819'} : {paramLat?: string, paramLong?: string}= req.query;
+      const apiKey = process.env.OPENWEATHER_KEY;
+      const lat = parseFloat(paramLat);
+      const long = parseFloat(paramLong);
+      console.log("why u here");
+      const apiURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=${apiKey}&units=imperial`;
+      res.json({message: "hello world"});
       
+
     });
     /* 
     The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
