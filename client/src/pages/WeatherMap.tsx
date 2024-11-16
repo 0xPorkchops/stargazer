@@ -1,5 +1,6 @@
-import SignOut from '../components/SignOut'
-import { Input } from '../components/ui/Input'
+import SignOut from '@/components/SignOut'
+import { Input } from "@/components/ui/input"
+
 function WeatherMap(){
     return (
     <>
