@@ -1,4 +1,4 @@
-import { getGeolocation } from '../getGeolocation'
+import { GetGeolocation } from '../lib/utils'
 import { useState, useEffect } from 'react';
 export default function LocationTest(){
     const [coordinates, setCoordinates] = useState<{latitude: number, longitude: number} | null >(null);
@@ -7,7 +7,7 @@ export default function LocationTest(){
         const fetchGeoLocation = async () => {
           try {
             // Assuming getGeolocation returns an object with userLat and userLong
-            const { userLat, userLong } = await getGeolocation();
+            const { userLat, userLong } = await GetGeolocation();
             setCoordinates({ latitude: userLat, longitude: userLong });
           } catch (error) {
             console.error("Error fetching geolocation:", error);

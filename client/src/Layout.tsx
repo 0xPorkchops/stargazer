@@ -15,7 +15,8 @@ function Layout({ children }: { children: React.ReactNode }) {
 
             {/* Navigation Tabs */}
             <nav className="flex flex-wrap justify-center sm:justify-end space-x-3 sm:space-x-5">
-                <a href="/starmap" className="px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700">Weather & Star Map</a>
+                <a href="/starmap" className="px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700">Star Map</a>
+                <a href="/weather" className="px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700">Weather</a>
                 <a href="/locationtest" className="px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700">Location Test </a>
                 <a href="/" className="px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700">Home</a>
             </nav>

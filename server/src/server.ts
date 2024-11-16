@@ -75,17 +75,39 @@ async function startServer() {
       }
     });
 
-    app.get('/api/weather', async (req, res)=>{
-      const {paramLat = '42.3952875', paramLong = '-72.5310819'} : {paramLat?: string, paramLong?: string}= req.query;
+    app.get('/api/weather', async (req, res) => {
+      const { paramLat = '42.3952875', paramLong = '-72.5310819' }:{paramLat?: string, paramLong?: string} = req.query;
       const apiKey = process.env.OPENWEATHER_KEY;
       const lat = parseFloat(paramLat);
       const long = parseFloat(paramLong);
-      console.log("why u here");
+      console.log(lat);
+      console.log(long);
+      console.log(apiKey);
+    
       const apiURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=${apiKey}&units=imperial`;
-      res.json({message: "hello world"});
-      
-
+    
+      try {
+        // Fetch data from the OpenWeather API
+        const response = await fetch(apiURL);
+    
+        // Check if the response is ok (status code 200-299)
+        if (!response.ok) {
+          throw new Error(`OpenWeather API error: ${response.statusText}`);
+        }
+    
+        // Parse the JSON data
+        const weatherData = await response.json();
+    
+        // Send the JSON data to the client
+        res.json(weatherData);
+      } catch (error) {
+        if(error instanceof Error){
+          console.error('Error fetching weather data:', error.message);
+        }
+        res.status(500).json({ error: 'Failed to fetch weather data' });
+      }
     });
+    
     /* 
     The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
     Vercel routes static/client-side files instead of Express, but this can be changed in vercel.json if needed.
