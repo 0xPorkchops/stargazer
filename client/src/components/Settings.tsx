@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Settings as SettingsIcon } from "lucide-react"
 
 const phoneProviders = ["Verizon", "T-Mobile", "AT&T"] as const
 const themes = ["system", "light", "dark"] as const
@@ -117,7 +119,18 @@ export function Settings() {
   const watchNotifyPhone = form.watch("notifyPhone")
 
   return (
-    <Form {...form}>
+    <Dialog>
+    <DialogTrigger asChild>
+      <Button variant="ghost" size="icon">
+        <SettingsIcon className="h-5 w-5" />
+      </Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>Settings</DialogTitle>
+      </DialogHeader>
+      <div className="mt-4">
+      <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
@@ -315,5 +328,8 @@ export function Settings() {
         <Button type="submit">Save Settings</Button>
       </form>
     </Form>
+      </div>
+    </DialogContent>
+  </Dialog>
   )
 }

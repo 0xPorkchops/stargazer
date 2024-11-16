@@ -1,8 +1,8 @@
-import { Button } from './components/ui/button'
+import { Settings } from '@/components/Settings'
+import { Button } from '@/components/ui/button'
 import { SignedIn, SignedOut, SignInButton, UserButton} from '@clerk/clerk-react'
 
 function Layout({ children }: { children: React.ReactNode }) {
-
   return (
     <>
         <header className="sticky top-0 z-10 bg-gray-800 text-white">
@@ -21,17 +21,18 @@ function Layout({ children }: { children: React.ReactNode }) {
             </nav>
 
             {/* User Actions */}
-            <div className="mt-4 sm:mt-0">
-            <SignedOut>
-            <SignInButton>
-                <Button variant="secondary">
-                Sign Up
-                </Button>
+            <div className="mt-4 sm:mt-0 flex items-center gap-2">
+              <SignedOut>
+                <SignInButton>
+                  <Button variant="secondary">
+                    Sign Up
+                  </Button>
                 </SignInButton>
-            </SignedOut>
-            <SignedIn>
+              </SignedOut>
+              <SignedIn>
+                <Settings />
                 <UserButton />
-            </SignedIn>
+              </SignedIn>
             </div>
             </div>
         </div>
