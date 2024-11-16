@@ -17,25 +17,39 @@ const themes = ["system", "light", "dark"] as const
 
 // Mock functions
 const getUserSettings = async () => {
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  return {
-    name: "John Doe",
-    latitude: 40.7128,
-    longitude: -74.0060,
-    theme: "dark" as const,
-    notifyEmail: true,
-    notifyPhone: true,
-    email: "john@example.com", 
-    phone: "1234567890",
-    phoneProvider: "AT&T" as const,
-  }
+  const response = await fetch('http://localhost:3000/api/settings', {
+    method : "GET",
+    credentials : "include",
+  });
+  if (!response.ok) throw new Error('Failed to fetch settings');
+  return response.json();
+
+  // await new Promise(resolve => setTimeout(resolve, 1000))
+  // return {
+  //   name: "John Doe",
+  //   latitude: 40.7128,
+  //   longitude: -74.0060,
+  //   theme: "dark" as const,
+  //   notifyEmail: true,
+  //   notifyPhone: true,
+  //   email: "john@example.com", 
+  //   phone: "1234567890",
+  //   phoneProvider: "AT&T" as const,
+  // }
 }
 
 const setUserSettings = async (values: FormValues) => {
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  console.log("Settings saved:", values)
-  return values
-}
+  const response = await fetch('http://localhost:3000/api/settings', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(values)
+  });
+  if (!response.ok) throw new Error('Failed to update settings');
+  return response.json();
+};
 
 const formSchema = z.object({
   name: z.string().min(1).max(255),
