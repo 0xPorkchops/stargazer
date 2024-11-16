@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
 import AppRoutes from './AppRoutes.tsx'
+import "./css/index.css"
 import { BrowserRouter } from 'react-router-dom';
 import Layout from './Layout'
 import { ClerkProvider} from '@clerk/clerk-react'
