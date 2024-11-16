@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/HomePage';
-import WeatherMap from './pages/WeatherMap';
+import WeatherMap from './pages/Weather';
 import TestingPage from './pages/TestingPage';
 import LocationTest from './test/LocationTest';
 function AppRoutes() {
