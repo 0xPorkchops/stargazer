@@ -1,5 +1,5 @@
 import SignOut from '../components/SignOut'
-import { Input } from '../components/ui/Input'
+import { Input } from '../components/ui/input'
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getGeolocation } from '@/getGeolocation';
