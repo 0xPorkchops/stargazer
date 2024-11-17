@@ -122,18 +122,17 @@ async function startServer() {
           phoneProvider: 'AT&T',
           lastUpdated: new Date()
         };
-        return res.json(defaultSettings);
 
-        // if (!user) {
-        //   return res.status(404).json({ error: 'User not found' });
-        // }
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
 
-        // // If no settings exist yet, return default settings
-        // if (!user.settings) {
-          
-        // }
+        // If no settings exist yet, return default settings
+        if (!user.settings) {
+          return res.json(defaultSettings);
+        }
 
-        // res.json(user.settings)
+        return res.json(user.settings)
       } catch (error) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
