@@ -4,8 +4,8 @@ function StarMap() {
   const [longitude, setLongitude] = useState('');
   const [latitude, setLatitude] = useState('');
   const [date, setDate] = useState('');
-  const [style, setStyle] = useState('');
-  const [constellation, setConstellation] = useState('');
+  const [style, setStyle] = useState('default');
+  const [constellation, setConstellation] = useState('ori');
   const [message, setMessage] = useState('');
   //let isLoading = false;
   const authString = btoa(`fae035fe-50ae-4b4a-9ff2-57736802a25a:bd42fe2afe2024a3c401a501746f1960b30bf77972c6e31cf32827b58c4d81e61b0f90cbe2eebf16c0ffb92f54622dd14f362592b6a444bc51494c29820246734e1c608a33802d0f10a9173b907fc278e4f835ee1adcde573fac0d2cc45d9fa594ff053b86628ef3cb4adffd8f8d5c11`);
@@ -66,6 +66,7 @@ function StarMap() {
               required
               min = "-180"
               max = "180"
+              step = "0.000001"
               className="w-full p-3 text-black rounded-md"
             />
           </div>
@@ -81,6 +82,7 @@ function StarMap() {
               required
               min = "-90"
               max = "90"
+              step = "0.000001"
               className="w-full p-3 text-black rounded-md"
             />
           </div>
