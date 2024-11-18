@@ -1,4 +1,4 @@
-import SignOut from '../components/SignOut';
+//import SignOut from '../components/SignOut';
 import '../css/weather.css';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -60,7 +60,7 @@ function WeatherMap(){
            
           </div>
         </BackgroundContainer>
-        <SignOut />     
+        {/*<SignOut />*/}     
     </>)
 }
 
