@@ -1,4 +1,4 @@
-import { Settings } from '@/components/settings'
+import { Settings } from '@/components/Settings'
 import { Button } from '@/components/ui/button'
 import { SignedIn, SignedOut, SignInButton, UserButton} from '@clerk/clerk-react'
 
