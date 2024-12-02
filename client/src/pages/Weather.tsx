@@ -4,7 +4,6 @@ import axios from 'axios';
 import { GetGeolocation } from '../lib/utils';
 import WeatherResponse from '../interfaces/WeatherResponse';
 import { TransformToWeatherResponse } from '../lib/utils';
-import BackgroundContainer from '../components/BackgroundContainer';
 
 function WeatherMap(){
     const [weatherData, setWeatherData] = useState<WeatherResponse | null>(null);
@@ -14,7 +13,7 @@ function WeatherMap(){
           try {
             // Fetch the geolocation first
             const location = await GetGeolocation();
-            
+            console.log(location);
     
             // Fetch weather data using latitude and longitude
             const response = await axios.get('http://localhost:3000/api/weather', {
@@ -51,14 +50,12 @@ function WeatherMap(){
     }
     return (
     <>
-        <BackgroundContainer backgroundSrc="./src/assets/Sun.png">
           <div className='text-center'>
             <p className='text-5xl m-8'>{weatherData.location}</p>
             <p className='font-bold text-8xl'>{weatherData.temperature.temp}°</p>
             <p className='italic'>Feels like {weatherData.temperature.feels_like}°</p>
            
           </div>
-        </BackgroundContainer> 
     </>)
 }
 
