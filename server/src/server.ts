@@ -168,15 +168,11 @@ async function startServer() {
     });
 
     app.get('/api/weather', async (req, res) => {
-      const { paramLat = '42.3952875', paramLong = '-72.5310819' }:{paramLat?: string, paramLong?: string} = req.query;
+      const { paramLat = '42.3952875', paramLon = '-72.5310819' }:{paramLat?: string, paramLon?: string} = req.query;
       const apiKey = process.env.OPENWEATHER_KEY;
       const lat = parseFloat(paramLat);
-      const long = parseFloat(paramLong);
-      console.log(lat);
-      console.log(long);
-      console.log(apiKey);
-    
-      const apiURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=${apiKey}&units=imperial`;
+      const lon = parseFloat(paramLon);
+      const apiURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
     
       try {
         // Fetch data from the OpenWeather API
