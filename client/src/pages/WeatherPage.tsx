@@ -52,10 +52,23 @@ function WeatherDisplay() {
     return (
         <>
             <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} />
-            <div className="text-center">
+            <div className="flex flex-col items-center">
                 <p className="text-5xl m-8">{weatherData.location}</p>
                 <p className="font-bold text-8xl">{weatherData.temperature.temp}°</p>
                 <p className="italic">Feels like {weatherData.temperature.feels_like}°</p>
+                <p>{weatherData.weather.description ?
+                     weatherData.weather.description.charAt(0).toUpperCase() + weatherData.weather.description.slice(1) : 'No description available'}</p>
+                <div className="info-container w-5/12 bg-white flex flex-col items-center">
+                    <div className="flex flex-row">
+                        <p>{weatherData.temperature.temp_min}</p>
+                        <p>{weatherData.temperature.temp_max}</p>
+                    </div>
+                    <div className="flex flex-row">
+                        <p>{weatherData.clouds}</p>
+                        <p>{weatherData.wind_speed}</p>
+                    </div>
+                </div>
+            
             </div>
         </>
     );
