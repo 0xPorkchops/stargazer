@@ -5,7 +5,7 @@ import { GetGeolocation, TransformToWeatherResponse } from '../lib/utils';
 import WeatherResponse from '../interfaces/WeatherResponse';
 import AddressAutoCompleteInput from '@/components/AddressSearchInput';
 
-function WeatherMap() {
+function WeatherDisplay() {
     const [weatherData, setWeatherData] = useState<WeatherResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lon: number } | null>(null);
@@ -61,4 +61,4 @@ function WeatherMap() {
     );
 }
 
-export default WeatherMap;
+export default WeatherDisplay;
