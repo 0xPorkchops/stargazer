@@ -48,13 +48,36 @@ function WeatherDisplay() {
     // If there's an error or weather data isn't yet loaded
     if (error) return <div>Error: {error}</div>;
     if (!weatherData) return <div>Loading...</div>;
-
+    const getWeatherIcon = (weatherId:number, sunriseTimestamp: number, sunsetTimestamp: number) => {
+        const dayTime = isDayTime(sunriseTimestamp, sunsetTimestamp);
+        if (weatherId >= 200 && weatherId < 300) return 'fa-bolt'; // Thunderstorm
+        if (weatherId >= 300 && weatherId < 500) return 'fa-cloud-drizzle'; // Drizzle
+        if (weatherId >= 500 && weatherId < 600) return 'fa-cloud-showers-heavy'; // Rain
+        if (weatherId >= 600 && weatherId < 700) return 'fa-snowflake'; // Snow
+        if (weatherId === 781) return 'fa-tornado';
+        if (weatherId >= 700 && weatherId < 800) return 'fa-smog'; // Atmosphere (mist, smoke, etc.)
+        if (weatherId === 800) return dayTime ? 'fa-sun' : 'fa-moon'; // Clear
+        if (weatherId > 800 && weatherId < 803) return dayTime ? 'fa-cloud-sun' : 'fa-cloud-moon'; //Some cloud
+        if (weatherId >= 803) return 'fa-cloud';
+        return 'fa-question'; // Fallback icon for unknown ID
+    };
+    const isDayTime = (sunriseTimestamp: number, sunsetTimestamp: number) => {
+        const sunriseTime = new Date(sunriseTimestamp * 1000); 
+        const sunsetTime = new Date(sunsetTimestamp * 1000); 
+        
+        // Get the current time
+        const currentTime = new Date();
+        
+        // Check if current time is between sunrise and sunset
+        return currentTime >= sunriseTime && currentTime <= sunsetTime;
+    };
+    
     return (
         <>
             <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} />
             <div className="flex flex-col items-center">
                 <p className="text-4xl m-8">{weatherData.location}</p>
-                <i className="fa-solid fa-sun fa-10x mb-6"></i>
+                <i className={`fa-solid ${getWeatherIcon(weatherData.weather.id, weatherData.sunrise, weatherData.sunset)} fa-10x mb-6`}></i>
                 <p className="italic">Feels like {weatherData.temperature.feels_like}°</p>
                 <p className="font-bold text-7xl">{weatherData.temperature.temp}°</p>
                 <p>{weatherData.weather.description ?

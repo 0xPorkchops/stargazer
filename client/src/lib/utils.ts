@@ -32,6 +32,7 @@ export function TransformToWeatherResponse(data: RawWeatherData): WeatherRespons
     weather: {
       main: data.weather[0]?.main || "Unknown",
       description: data.weather[0]?.description || "No description",
+      id: parseInt(data.weather[0]?.id) || 0,
     },
     temperature: {
       temp: data.main?.temp || 0,
