@@ -27,9 +27,9 @@ function Layout({ children }: { children: React.ReactNode }) {
             <div className="mt-4 sm:mt-0 flex items-center gap-2">
             <ModeToggle />
             <SignedOut>
-                <SignInButton>
+                <SignInButton mode="modal">
                   <Button variant="secondary">
-                    Sign Up
+                    Sign In
                   </Button>
                 </SignInButton>
               </SignedOut>
