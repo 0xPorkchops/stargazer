@@ -62,6 +62,7 @@ function WeatherDisplay() {
         return 'fa-question'; // Fallback icon for unknown ID
     };
     const isDayTime = (sunriseTimestamp: number, sunsetTimestamp: number) => {
+        if(sunriseTimestamp === -1) return true;
         const sunriseTime = new Date(sunriseTimestamp * 1000); 
         const sunsetTime = new Date(sunsetTimestamp * 1000); 
         
