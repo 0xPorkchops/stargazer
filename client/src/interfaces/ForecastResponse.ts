@@ -3,7 +3,8 @@ export default interface ForecastResponse {
 }
 
 export interface DayWeather {
-    date: string; // date in YYYY-MM-DD format
-    temperature: number; // average temperature for the day
+    date: string; // date in MM-DD format
+    temp_min: number;
+    temp_max: number;
     weatherId: number; // weather condition ID
 }
