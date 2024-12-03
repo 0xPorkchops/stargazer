@@ -53,22 +53,32 @@ function WeatherDisplay() {
         <>
             <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} />
             <div className="flex flex-col items-center">
-                <p className="text-5xl m-8">{weatherData.location}</p>
-                <p className="font-bold text-8xl">{weatherData.temperature.temp}°</p>
+                <p className="text-4xl m-8">{weatherData.location}</p>
+                <i className="fa-solid fa-sun fa-10x mb-6"></i>
                 <p className="italic">Feels like {weatherData.temperature.feels_like}°</p>
+                <p className="font-bold text-7xl">{weatherData.temperature.temp}°</p>
                 <p>{weatherData.weather.description ?
                      weatherData.weather.description.charAt(0).toUpperCase() + weatherData.weather.description.slice(1) : 'No description available'}</p>
-                <div className="info-container w-5/12 bg-white flex flex-col items-center">
-                    <div className="flex flex-row">
-                        <p>{weatherData.temperature.temp_min}</p>
-                        <p>{weatherData.temperature.temp_max}</p>
-                    </div>
-                    <div className="flex flex-row">
-                        <p>{weatherData.clouds}</p>
-                        <p>{weatherData.wind_speed}</p>
+                <div className="info-container w-6/7 flex flex-col py-3">
+                    <div className="flex justify-center w-full">
+                        <div className="flex justify-center mx-3">
+                            <i className="fa-solid fa-temperature-high"></i>
+                            <p className="mx-2">H: {weatherData.temperature.temp_max}°</p>
+                        </div>
+                        <div className="flex justify-center mx-3">
+                            <i className="fa-solid fa-temperature-low"></i>
+                            <p className="mx-2">L: {weatherData.temperature.temp_min}°</p>
+                        </div>
+                        <div className="flex justify-center mx-3">
+                            <i className="fa-solid fa-cloud"></i>
+                            <p className="mx-2">Cloud: {weatherData.clouds}</p>
+                        </div>
+                        <div className="flex justify-center mx-3">
+                            <i className="fa-solid fa-wind"></i>
+                            <p className="mx-2">Wind: {weatherData.wind_speed} mi/hr</p>
+                        </div>
                     </div>
                 </div>
-            
             </div>
         </>
     );
