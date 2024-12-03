@@ -195,6 +195,35 @@ async function startServer() {
         res.status(500).json({ error: 'Failed to fetch weather data' });
       }
     });
+
+    app.get('/api/forecast', async (req, res) => {
+      const { paramLat = '42.3952875', paramLon = '-72.5310819' }:{paramLat?: string, paramLon?: string} = req.query;
+      const apiKey = process.env.OPENWEATHER_KEY;
+      const lat = parseFloat(paramLat);
+      const lon = parseFloat(paramLon);
+      const apiURL = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
+    
+      try {
+        // Fetch data from the OpenWeather API
+        const response = await fetch(apiURL);
+    
+        // Check if the response is ok (status code 200-299)
+        if (!response.ok) {
+          throw new Error(`OpenWeather API error: ${response.statusText}`);
+        }
+    
+        // Parse the JSON data
+        const forecastData = await response.json();
+    
+        // Send the JSON data to the client
+        res.json(forecastData);
+      } catch (error) {
+        if(error instanceof Error){
+          console.error('Error fetching forecast data:', error.message);
+        }
+        res.status(500).json({ error: 'Failed to fetch forecast data' });
+      }
+    });
     
     /* 
     The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.

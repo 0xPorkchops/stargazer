@@ -1,22 +1,29 @@
 import '../css/weather.css';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { GetGeolocation, TransformToWeatherResponse } from '../lib/utils';
+import { GetGeolocation, TransformToWeatherResponse, TransformToForecastResponse } from '../lib/utils';
 import WeatherResponse from '../interfaces/WeatherResponse';
+import ForecastResponse from '../interfaces/ForecastResponse';
 import AddressAutoCompleteInput from '@/components/AddressSearchInput';
+import { format } from 'date-fns';
 
 function WeatherDisplay() {
     const [weatherData, setWeatherData] = useState<WeatherResponse | null>(null);
+    const [forecastData, setForecastData] = useState<ForecastResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lon: number } | null>(null);
 
     // Fetch weather data based on the provided latitude and longitude
     const fetchWeather = async (lat: number, lon: number) => {
         try {
-            const response = await axios.get('http://localhost:3000/api/weather', {
+            const weatherResponse = await axios.get('http://localhost:3000/api/weather', {
                 params: { paramLat: lat, paramLon: lon },
             });
-            setWeatherData(TransformToWeatherResponse(response.data));
+            const forecastResponse = await axios.get('http://localhost:3000/api/forecast', {
+                params: { paramLat: lat, paramLon: lon },
+            });
+            setWeatherData(TransformToWeatherResponse(weatherResponse.data));
+            setForecastData(TransformToForecastResponse(forecastResponse.data));
         } catch (err) {
             setError(err instanceof Error ? err.message : "An unknown error occurred");
         }
@@ -72,11 +79,14 @@ function WeatherDisplay() {
         // Check if current time is between sunrise and sunset
         return currentTime >= sunriseTime && currentTime <= sunsetTime;
     };
+    const dayOfWeek = format(new Date(), 'EEEE'); // Returns full day name
     
     return (
         <>
             <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} />
             <div className="flex flex-col items-center">
+                <p>{forecastData && forecastData.daily[0].date}</p>
+                <p>{dayOfWeek}</p>
                 <p className="text-4xl m-8">{weatherData.location}</p>
                 <i className={`fa-solid ${getWeatherIcon(weatherData.weather.id, weatherData.sunrise, weatherData.sunset)} fa-10x mb-6`}></i>
                 <p className="italic">Feels like {weatherData.temperature.feels_like}°</p>
