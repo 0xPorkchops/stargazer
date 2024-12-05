@@ -4,13 +4,15 @@ function StarMap() {
   const [longitude, setLongitude] = useState('');
   const [latitude, setLatitude] = useState('');
   const [date, setDate] = useState('');
-  const [style, setStyle] = useState('');
-  const [constellation, setConstellation] = useState('');
+  const [style, setStyle] = useState('default');
+  const [constellation, setConstellation] = useState('ori');
   const [message, setMessage] = useState('');
+  //let isLoading = false;
   const authString = btoa(`fae035fe-50ae-4b4a-9ff2-57736802a25a:bd42fe2afe2024a3c401a501746f1960b30bf77972c6e31cf32827b58c4d81e61b0f90cbe2eebf16c0ffb92f54622dd14f362592b6a444bc51494c29820246734e1c608a33802d0f10a9173b907fc278e4f835ee1adcde573fac0d2cc45d9fa594ff053b86628ef3cb4adffd8f8d5c11`);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    //isLoading = true;
     const res = await fetch("https://api.astronomyapi.com/api/v2/studio/star-chart", {
       method: "POST",
       headers: {
@@ -42,6 +44,7 @@ function StarMap() {
       output = res.status
     }
     setMessage(output);
+    //isLoading = false;
   };
 
   //StarMap
@@ -61,6 +64,9 @@ function StarMap() {
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
               required
+              min = "-180"
+              max = "180"
+              step = "0.000001"
               className="w-full p-3 text-black rounded-md"
             />
           </div>
@@ -74,6 +80,9 @@ function StarMap() {
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
               required
+              min = "-90"
+              max = "90"
+              step = "0.000001"
               className="w-full p-3 text-black rounded-md"
             />
           </div>
@@ -137,13 +146,13 @@ function StarMap() {
       <div className="flex flex-col items-center justify-center w-2/3 bg-gray-900 p-6 -mt-20">
         {/* The image for the star map is displayed here */}
         <div className="star-map-container w-full h-full flex items-center justify-center bg-gray-900 -mt-20">
-          {message && (
-            <img
+          {/*isLoading && <div className="text-white text-lg">Loading...</div>*/}
+           {message && <img
               src={message} 
               alt={`Status Error: ${message}`}
               className="max-w-full max-h-full object-contain"
             />
-          )}
+          }
         </div>
       </div>
     </div>

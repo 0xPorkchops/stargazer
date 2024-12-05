@@ -1,4 +1,3 @@
-import SignOut from '../components/SignOut';
 import '../css/weather.css';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -59,8 +58,7 @@ function WeatherMap(){
             <p className='italic'>Feels like {weatherData.temperature.feels_like}°</p>
            
           </div>
-        </BackgroundContainer>
-        <SignOut />     
+        </BackgroundContainer> 
     </>)
 }
 
