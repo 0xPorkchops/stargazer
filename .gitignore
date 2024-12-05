@@ -12,6 +12,8 @@
 /build
 /client/build
 /server/build
+/client/tsconfig.app.tsbuildinfo
+/client/tsconfig.node.tsbuildinfo
 
 # misc
 .DS_Store
