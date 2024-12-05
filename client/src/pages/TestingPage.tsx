@@ -1,10 +1,10 @@
-import { Settings } from '@/components/settings';
+// import { Settings } from '@/components/settings';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
 export default function TestingPage(){
     const navigate = useNavigate();
     return (<>
-        <Settings />
+        {/* <Settings /> */}
         <Button onClick={()=>{navigate('/testing')}}>Location Test</Button>
     </>)
 }
