@@ -70,19 +70,17 @@ function EventsPage() {
 
   useEffect(() => {
     fetchEvents(42, -72);
-  }, []); // Empty dependency array ensures this runs only once after initial render
+  }, []); 
 
   return (
     <div>
       <h1>Event Names and Dates</h1>
 
-      {/* Display status message */}
       <p>Status: {statusMessage}</p>
 
       <div>
         <h2>Event Names:</h2>
         <ul>
-          {/* Render event names dynamically using map */}
           {eventNames.map((eventName, index) => (
             <li key={index}>{eventName}</li>
           ))}
@@ -92,7 +90,6 @@ function EventsPage() {
       <div>
         <h2>Event Dates:</h2>
         <ul>
-          {/* Render event dates dynamically using map */}
           {eventDates.map((eventDate, index) => (
             <li key={index}>{eventDate}</li>
           ))}
