@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 
 function EventsPage() {
-  const [eventNames, setEventNames] = useState(["No events at the moment!"]);
-  const [eventDates, setEventDates] = useState(["N/A"]);
+  const [events, setEvents] = useState(["No events at the moment!", "N/A"]);
   const [statusMessage, setStatusMessage] = useState(''); 
 
   const authString = btoa(
@@ -18,58 +17,70 @@ function EventsPage() {
       from_date: '2025-01-01',
       to_date: '2026-01-01',
       time: '18:30:00',
-      output: "rows",
+      output: 'rows'
     }).toString();
-    const res = await fetch(`https://api.astronomyapi.com/api/v2/bodies/events/sun?${params}`, {
+    const lunarRes = await fetch(`https://api.astronomyapi.com/api/v2/bodies/events/moon?${params}`, {
         method: "GET",
         headers: {
           "Content-Type": 'application/json',
           Authorization: `Basic ${authString}`,
         }
-      }); 
-
+    });
+    const year = "2025";
+    const solarRes = await fetch(`https://aa.usno.navy.mil/api/eclipses/solar/year?year=${year}`)
   
-    if (res.ok) {
+    if (lunarRes.ok && solarRes.ok) {
       setStatusMessage('OK');  
-      const data = await res.json();
-      console.log("API Response Data:", data);
-    
-      const rows = data['data']['rows'];
+      const lunarData = await lunarRes.json();
+      const solarData = await solarRes.json();
+      console.log("API Lunar Response Data:", lunarData);
+      console.log("API Solar Response Data:", solarData);
+      const rows = lunarData['data']['rows'];
 
-      const tempEventNames: string[] = [];
-      const tempEventDates: string[] = [];
+      const tempEvents:string[] = [];
+      let eventName, eventDate:string;
+       // @ts-ignore 
       rows.forEach((row) => {
+         // @ts-ignore 
         row['events'].forEach((event) => {
-          tempEventNames.push(event['type']);
+          eventName = event['type'].split('_').map(word => {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+          }).join(' ');;
           if (event['type'].includes('solar')) {
-            tempEventDates.push(event['eventHighlights']['partialStart']['date']);
-          } else {
-            tempEventDates.push(event['eventHighlights']['pemumbralStart']['date']);
+            eventDate = event['eventHighlights']['partialStart']['date'];
+          } 
+          else {
+            eventDate = event['eventHighlights']['penumbralStart']['date'].substring(0, 10)
+            const [year, month, day] = eventDate.split("-");
+            eventDate = `${year}-${Number(month)}-${Number(day)}`;
           }
+          // @ts-ignore 
+          tempEvents.push([eventName, eventDate])
         });
       });
-
+      // @ts-ignore 
+      solarData['eclipses_in_year'].forEach((event) => {
+        eventName = event['event'].match(/^.*\beclipse\b/i)?.[0] || "";;
+        eventDate = event['year']+"-"+event['month']+"-"+event['day'];
+        // @ts-ignore 
+        tempEvents.push([eventName, eventDate])
+      });
+      
       //update state if there's events
-      if (tempEventNames.length > 0) {
-        console.log(tempEventNames);
-        console.log(tempEventDates);
-
-        setEventNames(tempEventNames);
-        setEventDates(tempEventDates);
+      if (tempEvents.length > 0) {
+        console.log("Events");
+        console.log(tempEvents);
+        setEvents(tempEvents);
       } 
-      else {
-        setEventNames(["NO events"]); 
-        setEventDates(["N/A"]); 
-      }
-    } 
+    }
     else {
       setStatusMessage('ERROR');  
-      console.error(`Error: ${res.status} - ${res.statusText}`); 
+      console.error(`Error`); 
     }
   };
 
   useEffect(() => {
-    fetchEvents(42, -72);
+    fetchEvents(41, 12);
   }, []); 
 
   return (
@@ -79,19 +90,12 @@ function EventsPage() {
       <p>Status: {statusMessage}</p>
 
       <div>
-        <h2>Event Names:</h2>
+        <h2>Event Names/Dates:</h2>
         <ul>
-          {eventNames.map((eventName, index) => (
-            <li key={index}>{eventName}</li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h2>Event Dates:</h2>
-        <ul>
-          {eventDates.map((eventDate, index) => (
-            <li key={index}>{eventDate}</li>
+          {events.map((events, index) => (
+            <li key={index}>
+            {events[0]} {events[1]}
+          </li>
           ))}
         </ul>
       </div>
