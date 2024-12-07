@@ -128,7 +128,7 @@ export function isDayTime(sunriseTimestamp: number, sunsetTimestamp: number): bo
 
 export function ThemeStatus(): boolean{
   const { theme } = useTheme();
-  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-schee: dark)").matches);
+  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   return isDarkMode;
 }
 export const fetcher = (...args: [RequestInfo, RequestInit?]) => fetch(...args).then(res => res.json())
