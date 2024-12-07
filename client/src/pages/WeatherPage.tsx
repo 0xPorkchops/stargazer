@@ -1,4 +1,5 @@
 import '../css/weather.css';
+import '../css/autocomplete-input.css';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { GetGeolocation, TransformToWeatherResponse, TransformToForecastResponse, getWeatherIcon } from '../lib/utils';
@@ -6,6 +7,7 @@ import WeatherResponse from '../interfaces/WeatherResponse';
 import ForecastResponse from '../interfaces/ForecastResponse';
 import AddressAutoCompleteInput from '@/components/AddressSearchInput';
 import { DayWeather } from '@/interfaces/ForecastResponse';
+import LoadingContainer from '@/components/LoadingContainer';
 
 function WeatherDisplay() {
     const [weatherData, setWeatherData] = useState<WeatherResponse | null>(null);
@@ -54,7 +56,9 @@ function WeatherDisplay() {
 
     // If there's an error or weather data isn't yet loaded
     if (error) return <div>Error: {error}</div>;
-    if (!weatherData) return <div>Loading...</div>;
+    if (!weatherData){
+        return (<LoadingContainer />)
+    }
 
     return (
         <>
@@ -87,10 +91,10 @@ function WeatherDisplay() {
                         </div>
                     </div>
                 </div>
-                <div className="flex border rounded-xl">
+                <div className="flex border rounded-xl mb-6">
                     {forecastData && forecastData.daily.map((day : DayWeather)=>{
                         return (
-                            <div className="flex flex-col items-center mx-5">
+                            <div className={"flex flex-col items-center mx-5"}>
                                  <p className="px-2">{day.date}</p>
                                  {/* -1, -1 means don't care about the parameter (placeholders) */}
                                  <i className={`fa-solid ${getWeatherIcon(day.weatherId, -1, -1)}`}></i> 

@@ -34,5 +34,5 @@ export default function AddressAutoCompleteInput({ onLocationSelect }: AddressAu
         }
     }, [onLocationSelect]); // Only rerun if onLocationSelect changes
 
-    return <div id="autocomplete" className="autocomplete-container"></div>;
+    return <div id="autocomplete" className="autocomplete-container flex justify-center pt-8"></div>;
 }

@@ -1,7 +1,7 @@
-@import "@geoapify/geocoder-autocomplete/styles/round-borders-dark.css";
 *{
     font-family: "Montserrat", serif;
 }
+
 .autocomplete-container {
     position: relative;
 }
