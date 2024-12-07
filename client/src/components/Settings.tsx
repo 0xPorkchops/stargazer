@@ -17,7 +17,7 @@ const themes = ["system", "light", "dark"] as const
 
 // Mock functions
 const getUserSettings = async () => {
-  const response = await fetch('http://localhost:3000/api/settings', {
+  const response = await fetch('/api/settings', {
     method : "GET",
     credentials : "include",
   });
@@ -39,7 +39,7 @@ const getUserSettings = async () => {
 }
 
 const setUserSettings = async (values: FormValues) => {
-  const response = await fetch('http://localhost:3000/api/settings', {
+  const response = await fetch('/api/settings', {
     method: 'POST',
     credentials: 'include',
     headers: {
