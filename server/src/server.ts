@@ -272,7 +272,7 @@ async function startServer() {
 
       if (notifyEmail) {
         sendMail(email, 'Test email', 'Test email 2');
-        res.json('Email notification sent');
+        res.json('Email notification sent to ' + email);
       }
 
       if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
