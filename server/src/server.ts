@@ -224,7 +224,7 @@ async function startServer() {
       }
     });
 
-    app.post('/api/notify/:userId', async (req, res) => {
+    app.get('/api/notify/:userId', async (req, res) => {
       const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1']; // cron-job.org IPs + localhost IP
       
       const phoneProviderEmailSuffixMap: { [key: string]: string } = { // todo: verify these gateways and add more
