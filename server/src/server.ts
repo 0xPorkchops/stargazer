@@ -259,10 +259,10 @@ async function startServer() {
       const usersCollection: Collection<User> = db.collection('users');
       const user = await usersCollection.findOne({ clerkUserId: userId });
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(403).json({ error: 'User not found' });
       }
       if (!user.settings) {
-        return res.status(404).json({ error: 'User settings not complete' });
+        return res.status(500).json({ error: 'User settings not complete' });
       }
       const notifyEmail = user.settings.notifyEmail;
       const notifyPhone = user.settings.notifyPhone;
