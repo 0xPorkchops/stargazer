@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export default function TestingPage(){
     const navigate = useNavigate();
     return (<>
-        <Settings />
+        {/* <Settings /> */}
         <Button onClick={()=>{navigate('/testing')}}>Location Test</Button>
     </>)
 }
