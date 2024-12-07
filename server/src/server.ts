@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
+import { clerkMiddleware, clerkClient, requireAuth, getAuth, PhoneNumber } from '@clerk/express';
 
 import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
@@ -55,7 +55,7 @@ interface UserSettings {
   lastUpdated: Date;
 }
 
-function sendMail(to: string, subject: string, text: string) {
+function sendMail(to: string, subject: string, text: string): boolean {
   const mailAPIKey = process.env.SENDGRID_API_KEY || 'FalseMailAPIKey';
   sgMail.setApiKey(mailAPIKey);
 
@@ -74,7 +74,9 @@ function sendMail(to: string, subject: string, text: string) {
     })
     .catch((error: unknown) => {
       console.error(error);
+      return false;
     });
+    return true;
 }
 
 async function startServer() {
@@ -270,16 +272,20 @@ async function startServer() {
       const phone = user.settings.phone;
       const phoneProvider = user.settings.phoneProvider;
 
+      const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean;} = {};
+
       if (notifyEmail) {
-        sendMail(email, 'Test email', 'Test email 2');
-        res.json('Email notification sent to ' + email);
+        const emailSent = sendMail(email, 'Test email', 'Test email 2');
+        response.email = email;
+        response.emailSent = emailSent;
       }
 
       if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
-        sendMail(`${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`, 'Test', 'Test2');
-        console.log("Sent text message to " + `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`);
+        const textSent = sendMail(`${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`, 'Test', 'Test2');
+        response.phone = `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`;
+        response.textSent = textSent
       }
-
+      res.json({ message: response });
     });
     
     /* 
