@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
-
+import { randomEvent } from './utils/getEvent.js';
 import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
 
@@ -224,7 +224,6 @@ async function startServer() {
         res.status(500).json({ error: 'Failed to fetch forecast data' });
       }
     });
-    
     /* 
     The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
     Vercel routes static/client-side files instead of Express, but this can be changed in vercel.json if needed.
@@ -239,7 +238,7 @@ async function startServer() {
     });
     */
     app.get('/api/events', (req, res)=>{
-      res.json({hello: "hi"});
+      res.json(randomEvent);
     });
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
