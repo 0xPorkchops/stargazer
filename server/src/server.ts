@@ -238,7 +238,9 @@ async function startServer() {
       res.sendFile(path.join(__dirname, '..', '..', 'client', 'build', 'index.html'));
     });
     */
-
+    app.get('/api/events', (req, res)=>{
+      res.json({hello: "hi"});
+    });
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
