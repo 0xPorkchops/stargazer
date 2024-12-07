@@ -38,6 +38,7 @@ interface User{
   _username: string;
   _email: string;
   settings?: UserSettings;
+  events? : Event[];
 }
 
 interface UserSettings {
@@ -47,10 +48,21 @@ interface UserSettings {
   theme: 'dark' | 'light' | 'red';
   notifyEmail: boolean;
   notifyPhone: boolean;
+  notifyFrequency : '1h' | '6h' | '12h' | '24h';
   email: string;
   phone: string;
   phoneProvider: string;
   lastUpdated: Date;
+}
+
+interface Event {
+  clerkUserId: string;
+  latitude: number;
+  longitude: number;
+  time: Date;
+  name?: string;
+  description?: string;
+  createdAt: Date;
 }
 
 async function startServer() {
@@ -80,11 +92,35 @@ async function startServer() {
         const db = dbConnection.getDb();
         const usersCollection: Collection<User> = db.collection('users');
         const user = await usersCollection.findOne({clerkUserId: userId});
-        
-        if (!user) {
-          return res.status(404).json({ error: 'User not found' });
+
+        if (user) { // user exists, return user
+          return res.status(200).json(user);
         }
-        res.json(user);
+
+        const {_firstname, _lastname, _username, _email, _last_location} = req.body;
+        if (!_firstname || !_lastname || !_username || !_email){
+          return res.status(400).json({error : "Missing user fields"});
+        }
+
+        const newuser = {
+          clerkUserId:userId, 
+          _id:userId, 
+          _firstname,
+          _lastname, 
+          _username,
+          _email, 
+          _last_location : 
+          _last_location ? {
+            ..._last_location, time:new Date()
+          } : undefined, 
+        };
+
+        const result = await usersCollection.insertOne(newuser);
+        if (result.acknowledged){
+          res.status(201).json(user);
+        } else {
+          res.status(500).json({error: "Failed to create user"})
+        }
       } catch (error) {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
@@ -96,8 +132,7 @@ async function startServer() {
       console.log("Place holder for put at /api/user");
     })
 
-
-
+    // Route to retrieve user settings
     app.route('/api/settings')
     .get(requireAuth(), async (req, res) => {
       const {userId} = getAuth(req);
@@ -117,6 +152,7 @@ async function startServer() {
           theme: 'light',
           notifyEmail: true,
           notifyPhone: true,
+          notifyFrequency: '24h',
           email: " .  ",
           phone: '',
           phoneProvider: 'AT&T',
@@ -166,6 +202,101 @@ async function startServer() {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
     });
+
+    app.route('/api/user/events')
+      .get(requireAuth(), async (req, res) => {
+        const { userId } = getAuth(req);
+        if (!userId) {
+          return res.status(401).json({ error: 'User not authenticated' });
+        }
+        
+        try {
+          const db = dbConnection.getDb();
+          const usersCollection: Collection<User> = db.collection('users');
+          
+          // Find user and return events
+          const user = await usersCollection.findOne(
+            { clerkUserId: userId },
+            { projection: { events: 1 } }
+          );
+    
+          if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+          }
+    
+          res.status(200).json(user.events || []);
+        } catch (error) {
+          res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+        }
+      })
+      .post(requireAuth(), async (req, res) => {
+        const { userId } = getAuth(req);
+        if (!userId) {
+          return res.status(401).json({ error: 'User not authenticated' });
+        }
+        
+        try {
+          const db = dbConnection.getDb();
+          const usersCollection: Collection<User> = db.collection('users');
+    
+          // Validate the new event
+          const newEvent: Event = {
+            ...req.body,
+            _id: new Object().toString(),
+            createdAt: new Date()
+          };
+    
+          // Add event to user's events array
+          const result = await usersCollection.updateOne(
+            { clerkUserId: userId },
+            { 
+              $push: { events: newEvent },
+              $set: { '_last_location.time': new Date() } // Optional: update last location time
+            }
+          );
+    
+          if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'User not found' });
+          }
+          
+          res.status(201).json(newEvent);
+        } catch (error) {
+          res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+        }
+      })
+      .delete(requireAuth(), async (req, res) => {
+        const { userId } = getAuth(req);
+        if (!userId) {
+          return res.status(401).json({ error: 'User not authenticated' });
+        }
+        
+        try {
+          const { eventId } = req.body;
+          if (!eventId) {
+            return res.status(400).json({ error: 'Event ID is required' });
+          }
+    
+          const db = dbConnection.getDb();
+          const usersCollection: Collection<User> = db.collection('users');
+    
+          // Remove specific event from the events array
+          const result = await usersCollection.updateOne(
+            { clerkUserId: userId },
+            { 
+              $pull: { events: { _id: eventId } },
+              $set: { '_last_location.time': new Date() } // Optional: update last location time
+            }
+          );
+    
+          if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'User not found' });
+          }
+          
+          res.status(200).json({ message: 'Event deleted successfully' });
+        } catch (error) {
+          res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+        }
+      });
 
     app.get('/api/weather', async (req, res) => {
       const { paramLat = '42.3952875', paramLon = '-72.5310819' }:{paramLat?: string, paramLon?: string} = req.query;
