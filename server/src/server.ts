@@ -271,8 +271,8 @@ async function startServer() {
       const phoneProvider = user.settings.phoneProvider;
 
       if (notifyEmail) {
-        sendMail(email, 'Test', 'Test2');
-        console.log("Sent email to " + email);
+        sendMail(email, 'Test email', 'Test email 2');
+        res.json('Email notification sent');
       }
 
       if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
@@ -280,7 +280,6 @@ async function startServer() {
         console.log("Sent text message to " + `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`);
       }
 
-      res.json('Notification sent');
     });
     
     /* 
