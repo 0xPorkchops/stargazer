@@ -2,6 +2,7 @@ import WeatherResponse from "@/interfaces/WeatherResponse";
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import RawWeatherData from "@/interfaces/RawWeatherData";
+import { useTheme } from "../components/theme-provider";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -44,6 +45,15 @@ export function TransformToWeatherResponse(data: RawWeatherData): WeatherRespons
     sunrise: data.sys?.sunrise || 0,
     sunset: data.sys?.sunset || 0,
   };
-
 }
+
+export function ThemeStatus(): boolean{
+  const { theme } = useTheme();
+
+  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  return isDarkMode;
+};
+
+
 export const fetcher = (...args: [RequestInfo, RequestInit?]) => fetch(...args).then(res => res.json())
