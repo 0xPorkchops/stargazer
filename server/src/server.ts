@@ -10,6 +10,8 @@ import cors from "cors";
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
 
+import sgMail from '@sendgrid/mail';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -44,13 +46,35 @@ interface UserSettings {
   name: string;
   latitude: number;
   longitude: number;
-  theme: 'dark' | 'light' | 'red';
+  theme: 'light' | 'dark' | 'system';
   notifyEmail: boolean;
   notifyPhone: boolean;
   email: string;
   phone: string;
   phoneProvider: string;
   lastUpdated: Date;
+}
+
+function sendMail(to: string, subject: string, text: string) {
+  const mailAPIKey = process.env.SENDGRID_API_KEY || 'FalseMailAPIKey';
+  sgMail.setApiKey(mailAPIKey);
+
+  const msg = {
+    to,
+    from: 'cameronproul@umass.edu',
+    subject,
+    text,
+  };
+
+  sgMail
+    .send(msg)
+    .then((response: any) => {
+      console.log(response[0].statusCode);
+      console.log(response[0].headers);
+    })
+    .catch((error: unknown) => {
+      console.error(error);
+    });
 }
 
 async function startServer() {
@@ -111,14 +135,14 @@ async function startServer() {
         const user = await usersCollection.findOne({ clerkUserId: userId });
 
         const defaultSettings: UserSettings = {
-          name: "ABC" + ' ' + "XYZ",
+          name: "John" + ' ' + "Doe",
           latitude: 40.7128,
           longitude: -74.0060,
           theme: 'light',
           notifyEmail: true,
           notifyPhone: true,
-          email: " .  ",
-          phone: '',
+          email: "johndoe@gmail.com",
+          phone: '4135555555',
           phoneProvider: 'AT&T',
           lastUpdated: new Date()
         };
@@ -199,6 +223,65 @@ async function startServer() {
         res.status(500).json({ error: 'Failed to fetch weather data' });
       }
     });
+
+    app.get('/api/notify/:userId', async (req, res) => {
+      const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1']; // cron-job.org IPs + localhost IP
+      
+      const phoneProviderEmailSuffixMap: { [key: string]: string } = { // todo: verify these gateways and add more
+        'AT&T': 'txt.att.net',
+        'Verizon': 'mypixmessages.com',
+        'T-Mobile': 'tmomail.net',
+        'Virgin Mobile': 'vmobl.com',
+        'Tracfone': 'mmst5.tracfone.com',
+        'Metro PCS': 'mymetropcs.com',
+        'Boost Mobile': 'myboostmobile.com',
+        'Cricket': 'sms.cricketwireless.net',
+        'Google Fi': 'msg.fi.google.com',
+        'U.S. Cellular': 'email.uscc.net',
+        'Ting': 'message.ting.com',
+        'Consumer Cellular': 'mailmymobile.net',
+        'C-Spire': 'cspire1.com',
+        'Page Plus': 'vtext.com'
+      };
+
+      console.log(req.ip);
+      if (!whitelistIPs.includes(req.ip || 'FalseIP')) {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }
+
+      const userId = req.params.userId;
+      // handle userId null or nonexistent
+      // get user email and phone number + preferences from mongodb
+      // send email and/or text message depending on preferences
+      // if they toggle both off, delete cron job
+      // if they toggle one on, create cron job
+      const db = dbConnection.getDb();
+      const usersCollection: Collection<User> = db.collection('users');
+      const user = await usersCollection.findOne({ clerkUserId: userId });
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      if (!user.settings) {
+        return res.status(404).json({ error: 'User settings not complete' });
+      }
+      const notifyEmail = user.settings.notifyEmail;
+      const notifyPhone = user.settings.notifyPhone;
+      const email = user.settings.email;
+      const phone = user.settings.phone;
+      const phoneProvider = user.settings.phoneProvider;
+
+      if (notifyEmail) {
+        sendMail(email, 'Test', 'Test2');
+        console.log("Sent email to " + email);
+      }
+
+      if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
+        sendMail(`${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`, 'Test', 'Test2');
+        console.log("Sent text message to " + `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`);
+      }
+
+      res.json('Notification sent');
+    });
     
     /* 
     The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
@@ -222,5 +305,6 @@ async function startServer() {
     console.error('Failed to start server:', error);
   } 
 }
+
 
 startServer();
