@@ -35,8 +35,8 @@ function StarMap() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      latitude: "",
-      longitude: "",
+      latitude: '',
+      longitude: '',
       date: "",
       constellation: "ori",
       style: "default"
@@ -44,11 +44,7 @@ function StarMap() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values.latitude)
-    console.log(values.longitude)
-    console.log(values.date)
-    console.log(values.constellation)
-    console.log(values.style)
+    console.log(values);
     const res = await fetch("https://api.astronomyapi.com/api/v2/studio/star-chart", {
         method: "POST",
         headers: {
