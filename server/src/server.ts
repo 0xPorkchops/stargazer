@@ -225,7 +225,7 @@ async function startServer() {
     });
 
     app.get('/api/notify/:userId', async (req, res) => {
-      const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1']; // cron-job.org IPs + localhost IP
+      const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1', '128.119.202.198']; // cron-job.org IPs + localhost IP + UMass IP
       
       const phoneProviderEmailSuffixMap: { [key: string]: string } = { // todo: verify these gateways and add more
         'AT&T': 'txt.att.net',
