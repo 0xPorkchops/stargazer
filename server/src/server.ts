@@ -242,7 +242,6 @@ async function startServer() {
           // Validate the new event
           const newEvent: Event = {
             ...req.body,
-            _id: new Object().toString(),
             createdAt: new Date()
           };
     
@@ -297,6 +296,64 @@ async function startServer() {
           res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
         }
       });
+
+    // Optional: Add an admin-style route for managing user events without authentication
+    app.route('/api/admin/user/events')
+    .get(async (req, res) => {
+      try {
+        const db = dbConnection.getDb();
+        const usersCollection: Collection<User> = db.collection('users');
+        
+        // Check if a specific user ID is provided
+        const { userId } = req.query;
+  
+        // If userId is provided, fetch events for that specific user
+        if (userId) {
+          const user = await usersCollection.findOne(
+            { clerkUserId: userId as string },
+            { projection: { events: 1, _firstname: 1, _lastname: 1 } }
+          );
+  
+          if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+          }
+  
+          return res.status(200).json({
+            userId: user.clerkUserId,
+            name: `${user._firstname} ${user._lastname}`,
+            events: user.events || []
+          });
+        }
+  
+        // If no userId, fetch all users with their events
+        const users = await usersCollection.find(
+          {},
+          { 
+            projection: { 
+              clerkUserId: 1, 
+              _firstname: 1, 
+              _lastname: 1, 
+              events: 1 
+            } 
+          }
+        ).toArray();
+  
+        // Transform the result to include only users with events
+        const usersWithEvents = users
+          .filter(user => user.events && user.events.length > 0)
+          .map(user => ({
+            userId: user.clerkUserId,
+            name: `${user._firstname} ${user._lastname}`,
+            events: user.events
+          }));
+  
+        res.status(200).json(usersWithEvents);
+      } catch (error) {
+        res.status(500).json({ 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
+    });
 
     app.get('/api/weather', async (req, res) => {
       const { paramLat = '42.3952875', paramLong = '-72.5310819' }:{paramLat?: string, paramLong?: string} = req.query;
