@@ -27,7 +27,7 @@ const formSchema = z.object({
   style: z.string()
 })
 
-function StarMap() {
+function Test() {
   const [date, setDate] = React.useState<Date>()
   const [message, setMessage] = useState('');
   const authString = btoa(`fae035fe-50ae-4b4a-9ff2-57736802a25a:bd42fe2afe2024a3c401a501746f1960b30bf77972c6e31cf32827b58c4d81e61b0f90cbe2eebf16c0ffb92f54622dd14f362592b6a444bc51494c29820246734e1c608a33802d0f10a9173b907fc278e4f835ee1adcde573fac0d2cc45d9fa594ff053b86628ef3cb4adffd8f8d5c11`);
@@ -235,5 +235,5 @@ function StarMap() {
   )
 }
 
-export default StarMap;
+export default Test;
 

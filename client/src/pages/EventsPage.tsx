@@ -83,6 +83,7 @@ function EventsPage() {
     fetchEvents(41, 12);
   }, []); 
 
+  //events is the array of tuples containing event names and dates
   return (
     <div>
       <h1>Event Names and Dates</h1>
