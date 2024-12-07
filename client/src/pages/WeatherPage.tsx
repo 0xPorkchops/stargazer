@@ -63,8 +63,8 @@ function WeatherDisplay() {
                 <p className="mt-8">Today</p>
                 <p className="text-4xl mb-6">{weatherData.location}</p>
                 <i className={`fa-solid ${getWeatherIcon(weatherData.weather.id, weatherData.sunrise, weatherData.sunset)} fa-10x mb-6`}></i>
-                <p className="italic">Feels like {weatherData.temperature.feels_like}°</p>
-                <p className="font-bold text-7xl">{weatherData.temperature.temp}°</p>
+                <p className="italic">Feels like {Math.round(weatherData.temperature.feels_like)}°</p>
+                <p className="font-bold text-7xl">{Math.round(weatherData.temperature.temp)}°</p>
                 <p>{weatherData.weather.description ?
                      weatherData.weather.description.charAt(0).toUpperCase() + weatherData.weather.description.slice(1) : 'No description available'}</p>
                 <div className="info-container w-6/7 flex flex-col py-3">
