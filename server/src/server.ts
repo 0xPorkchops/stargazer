@@ -47,10 +47,24 @@ interface UserSettings {
   theme: 'dark' | 'light' | 'red';
   notifyEmail: boolean;
   notifyPhone: boolean;
+  notifyFrequency : '1h' | '6h' | '12h' | '24h';
   email: string;
   phone: string;
   phoneProvider: string;
   lastUpdated: Date;
+}
+
+interface Event {
+  _id?: string;
+  clerkUserId: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  time: Date;
+  name?: string;
+  description?: string;
+  createdAt: Date;
 }
 
 async function startServer() {
@@ -141,6 +155,7 @@ async function startServer() {
           theme: 'light',
           notifyEmail: true,
           notifyPhone: true,
+          notifyFrequency: '24h',
           email: " .  ",
           phone: '',
           phoneProvider: 'AT&T',
