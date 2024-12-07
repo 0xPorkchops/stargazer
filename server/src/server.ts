@@ -56,7 +56,6 @@ interface UserSettings {
 }
 
 interface Event {
-  clerkUserId: string;
   latitude: number;
   longitude: number;
   time: Date;
@@ -297,7 +296,6 @@ async function startServer() {
         }
       });
 
-    // Optional: Add an admin-style route for managing user events without authentication
     app.route('/api/admin/user/events')
     .get(async (req, res) => {
       try {
