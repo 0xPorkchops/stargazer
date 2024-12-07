@@ -1,11 +1,12 @@
 @import "@geoapify/geocoder-autocomplete/styles/round-borders-dark.css";
 .geoapify-autocomplete-input{
-    width: 50%;
+    width: 100%;
     background-color: hsl(var(--background));
     border-color: hsl(var(--foreground));
     color: hsl(var(--foreground));
     font-size: 1rem;
     height: 2rem;
+    position: relative;
 }
 .geoapify-autocomplete-input::placeholder{
     color: hsl(var(--foreground));
@@ -13,5 +14,9 @@
 }
 .geoapify-autocomplete-items{
     justify-self: center;
-    width: 50%;
+    width: 100%;
+}
+.geoapify-close-button{
+    height: 2rem;
+    position: absolute;
 }

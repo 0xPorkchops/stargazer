@@ -98,7 +98,7 @@ function WeatherDisplay() {
                                  <p className="px-2">{day.date}</p>
                                  {/* -1, -1 means don't care about the parameter (placeholders) */}
                                  <i className={`fa-solid ${getWeatherIcon(day.weatherId, -1, -1)}`}></i> 
-                                <p>{day.temp_min}° - {day.temp_max}°</p>
+                                <p>{day.temp_min}° ~ {day.temp_max}°</p>
                             </div>
                         )
                     })}
