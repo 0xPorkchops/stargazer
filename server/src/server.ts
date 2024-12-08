@@ -1,13 +1,14 @@
-import express from "express";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
+import express from 'express';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
-import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
+import 'dotenv/config'; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
-import { getAllEvents, clearDb, removeExpiredEvents, getEventById, addEvent } from "./utils/db.js";
+import { getAllEvents, clearDb, removeExpiredEvents, getEventById, addEvent } from './utils/db.js';
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
-import { getDailyEvents } from "./utils/events.js";
+import { AstronomicalEvent, getDailyEvents } from './utils/events.js';
+import geolib from 'geolib';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -253,6 +254,63 @@ async function startServer() {
       }
     });    
 
+app.get('/api/events/near', async (req, res) => {
+  try {
+    // Retrieve the location (latitude, longitude, and radius) from query parameters
+    let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '50' }: { paramLat?: string, paramLon?: string, paramRadius?: string } = req.query;
+
+    // Parse the query parameters as floats
+    const latitude = parseFloat(paramLat);
+    const longitude = parseFloat(paramLon);
+    const radius = parseFloat(paramRadius);
+
+    // Validate if the parameters are valid numbers
+    if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {
+      return res.status(400).json({
+        error: 'Invalid location or radius values. Please provide valid numbers.',
+      });
+    }
+
+    // Make a GET request to the /api/events endpoint to get all events
+    const response = await fetch('http://localhost:3000/api/events'); // Assuming your server runs on port 3000
+    if (!response.ok) {
+      return res.status(500).json({
+        error: 'Error fetching events from the events endpoint.',
+      });
+    }
+
+    const events = await response.json();
+
+    // Filter events that are within the specified radius
+    const nearbyEvents = events.filter((event: any) => {
+      // Ensure the event has valid location data (latitude and longitude)
+      if (event.location && event.location.coordinates) {
+        const { latitude: eventLat, longitude: eventLon } = event.location.coordinates;
+
+        // Calculate the distance from the event to the provided location
+        const distance = geolib.getDistance(
+          { latitude: latitude, longitude: longitude },
+          { latitude: eventLat, longitude: eventLon }
+        );
+
+        // Return true if the event is within the radius, otherwise false
+        return distance <= radius * 1000; // geolib.getDistance returns meters, so multiply the radius by 1000
+      }
+      return false; // Exclude events without valid location data
+    });
+
+    // Respond with the nearby events
+    res.status(200).json(nearbyEvents);
+  } catch (error) {
+    // Log the error and respond with a generic error message
+    console.error('Error fetching events near location:', error);
+    res.status(500).json({
+      error: 'An error occurred while fetching events near the location.',
+    });
+  }
+});
+
+
     app.get('/api/events/:id', (req, res) => {
       try {
         const { id } = req.params; // Extract the event ID from the request parameters
@@ -271,7 +329,7 @@ async function startServer() {
         res.status(500).json({ error: 'An error occurred while fetching the event.' });
       }
     });
-    
+
     app.delete('/api/events', (req, res) => {
       try {
           clearDb(); // Clear the database
