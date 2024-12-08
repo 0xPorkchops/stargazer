@@ -1,11 +1,10 @@
 import express from "express";
-import path from "path";
+import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
 import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
-
+import { getAllEvents, clearDb, removeExpiredEvents, getEventById, addEvent } from "./utils/db.js";
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
 import { getDailyEvents } from "./utils/events.js";
@@ -237,10 +236,72 @@ async function startServer() {
       res.sendFile(path.join(__dirname, '..', '..', 'client', 'build', 'index.html'));
     });
     */
-    app.get('/api/events', (req, res)=>{
-      const dailyEventData = getDailyEvents();
-      res.json(dailyEventData);
+    app.get('/api/events', (req, res) => {
+      try {
+        // Remove expired events from the database
+        removeExpiredEvents();
+    
+        // Retrieve all events (updated)
+        const dailyEventData = getAllEvents();
+    
+        // Respond with the events data
+        res.status(200).json(dailyEventData);
+      } catch (error) {
+        // Handle any potential errors
+        console.error('Error fetching events:', error);
+        res.status(500).json({ error: 'An error occurred while fetching events.' });
+      }
+    });    
+
+    app.get('/api/events/:id', (req, res) => {
+      try {
+        const { id } = req.params; // Extract the event ID from the request parameters
+        const event = getEventById(id); // Get the event by ID
+        
+        if (event) {
+          // If the event is found, return it with a 200 status code
+          res.status(200).json(event);
+        } else {
+          // If the event is not found, return a 404 status code
+          res.status(404).json({ error: 'Event not found' });
+        }
+      } catch (error) {
+        // Handle any errors
+        console.error('Error fetching event by ID:', error);
+        res.status(500).json({ error: 'An error occurred while fetching the event.' });
+      }
     });
+    
+    app.delete('/api/events', (req, res) => {
+      try {
+          clearDb(); // Clear the database
+          res.status(200).json({ message: 'All events have been cleared successfully' });
+      } catch (error) {
+          console.error('Error clearing database:', error);
+          res.status(500).json({ error: 'Failed to clear events' });
+      }
+  });
+
+  app.post('/api/events/populate', (req, res) => {
+    try {
+      // Generate 7 days worth of events
+      const eventsToAdd = [];
+      for (let i = 0; i < 7; i++) {
+        eventsToAdd.push(...getDailyEvents());
+      }
+  
+      // Add the generated events to the database
+      eventsToAdd.forEach(event => addEvent(event));
+  
+      // Respond with a success message
+      res.status(200).json({ message: 'Successfully populated the database with a week of events.' });
+    } catch (error) {
+      // Handle any errors
+      console.error('Error populating events:', error);
+      res.status(500).json({ error: 'An error occurred while populating events.' });
+    }
+  });
+  
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

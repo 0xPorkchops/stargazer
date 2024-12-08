@@ -10,7 +10,7 @@ interface Location {
   coordinates: Coordinates;
 }
 
-interface Event {
+export interface AstronomicalEvent {
   id: string;
   type: string;
   name: string;
@@ -169,7 +169,7 @@ export const generateRandomCoord = (
   };
 };
 
-export const generateRandomAstronomicalEvent = (): Event => {
+export const generateRandomAstronomicalEvent = (): AstronomicalEvent => {
   // Randomly select the event type
   const eventIndex = Math.floor(Math.random() * eventTypes.length);
   const eventType: typeof eventTypes[number] = eventTypes[eventIndex];
@@ -191,10 +191,10 @@ export const generateRandomAstronomicalEvent = (): Event => {
   const startDate = randomDate();
   const endDate = randomDate(new Date(startDate), Math.floor(Math.random() * 5) + 1); // event lasts 1-5 days
 
-  let description = descriptions[eventIndex] || 'An unknown astronomical event.';
+  let description = `The ${eventName} ${descriptions[eventIndex]}` || 'An unknown astronomical event.';
 
   // Generate event object
-  const event: Event = {
+  const event: AstronomicalEvent = {
     id: uuidv4(), // Use UUID v4 for unique ID
     type: eventType,
     name: eventName,
@@ -213,10 +213,10 @@ export const generateRandomAstronomicalEvent = (): Event => {
   return event;
 };
 
-export const getDailyEvents = (): Event[] => {
+export const getDailyEvents = (): AstronomicalEvent[] => {
   const randomNumber = Math.floor(Math.random() * (10 - 3 + 1)) + 3;
   console.log(randomNumber);
-  const events: Event[] = [];
+  const events: AstronomicalEvent[] = [];
   for (let i = 0; i < randomNumber; i++) {
     events.push(generateRandomAstronomicalEvent());
   }
