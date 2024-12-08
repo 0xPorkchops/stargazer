@@ -3,7 +3,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
-import { randomEvent } from './utils/events.js';
 import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
 

@@ -169,12 +169,18 @@ export const generateRandomCoord = (
   };
 };
 
-export const generateRandomAstronomicalEvent = (
-  coordinates: { latitude: number; longitude: number }
-): Event => {
-  // Randomly select the event type, name, visibility, intensity, and frequency
+export const generateRandomAstronomicalEvent = (): Event => {
+  // Randomly select the event type
   const eventIndex = Math.floor(Math.random() * eventTypes.length);
   const eventType: typeof eventTypes[number] = eventTypes[eventIndex];
+
+  // Select the corresponding coordinate range for this event type
+  const coordinateRange = eventCoordinateRanges[eventType];
+
+  // Generate random coordinates within the range
+  const coordinates = generateRandomCoord(coordinateRange);
+
+  // Select random event name, visibility, intensity, and frequency
   const eventName =
     eventNames[eventType][Math.floor(Math.random() * eventNames[eventType].length)];
   const visibility = visibilityOptions[Math.floor(Math.random() * visibilityOptions.length)];
@@ -196,7 +202,7 @@ export const generateRandomAstronomicalEvent = (
     endDate: endDate,
     location: {
       type: 'Point',
-      coordinates: coordinates, // Use the provided coordinates
+      coordinates: coordinates, // Use the generated coordinates
     },
     description: description,
     visibility: visibility,
@@ -207,14 +213,12 @@ export const generateRandomAstronomicalEvent = (
   return event;
 };
 
-export const randomEvent = (): Event =>
-  generateRandomAstronomicalEvent(generateRandomCoord(eventCoordinateRanges['Meteor Shower']));
-
 export const getDailyEvents = (): Event[] => {
-  const randomNumber = Math.floor(Math.random() * (12 - 3 + 1)) + 3;
+  const randomNumber = Math.floor(Math.random() * (10 - 3 + 1)) + 3;
+  console.log(randomNumber);
   const events: Event[] = [];
   for (let i = 0; i < randomNumber; i++) {
-    events.push(randomEvent());
+    events.push(generateRandomAstronomicalEvent());
   }
   return events;
 };
