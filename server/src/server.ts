@@ -257,7 +257,7 @@ async function startServer() {
 app.get('/api/events/near', async (req, res) => {
   try {
     // Retrieve the location (latitude, longitude, and radius) from query parameters
-    let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '50' }: { paramLat?: string, paramLon?: string, paramRadius?: string } = req.query;
+    let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '500' }: { paramLat?: string, paramLon?: string, paramRadius?: string } = req.query;
 
     // Parse the query parameters as floats
     const latitude = parseFloat(paramLat);
@@ -294,6 +294,7 @@ app.get('/api/events/near', async (req, res) => {
         );
 
         // Return true if the event is within the radius, otherwise false
+        console.log(distance/1000);
         return distance <= radius * 1000; // geolib.getDistance returns meters, so multiply the radius by 1000
       }
       return false; // Exclude events without valid location data

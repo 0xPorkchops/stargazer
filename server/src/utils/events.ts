@@ -146,11 +146,25 @@ const descriptions = [
   'marks an asteroid flying by Earth at a safe distance.',
 ];
 
-const randomDate = (startDate = new Date(), daysOffset = 1) => {
-  const date = new Date(startDate);
-  date.setDate(date.getDate() + daysOffset);
-  return date.toISOString();
-};
+const randomDate = (startDate = new Date(), daysOffsetMin = 1, daysOffsetMax = 7) => {
+    // Create a copy of the start date
+    const date = new Date(startDate);
+  
+    // Randomize the number of days to offset
+    const daysOffset = Math.floor(Math.random() * (daysOffsetMax - daysOffsetMin + 1)) + daysOffsetMin;
+  
+    // Add the random days offset
+    date.setDate(date.getDate() + daysOffset);
+  
+    // Randomize the time (hours, minutes, seconds, milliseconds)
+    date.setHours(Math.floor(Math.random() * 24)); // Random hour (0-23)
+    date.setMinutes(Math.floor(Math.random() * 60)); // Random minute (0-59)
+    date.setSeconds(Math.floor(Math.random() * 60)); // Random second (0-59)
+    date.setMilliseconds(Math.floor(Math.random() * 1000)); // Random millisecond (0-999)
+  
+    return date.toISOString();
+  };
+  
 
 export const generateRandomCoord = (
   coordinateRange: { latRange: number[]; lonRange: number[] }
@@ -189,7 +203,7 @@ export const generateRandomAstronomicalEvent = (): AstronomicalEvent => {
 
   // Generate start and end dates for the event
   const startDate = randomDate();
-  const endDate = randomDate(new Date(startDate), Math.floor(Math.random() * 5) + 1); // event lasts 1-5 days
+  const endDate = randomDate(new Date(startDate), 1, 5); // event lasts 1-5 days
 
   let description = `The ${eventName} ${descriptions[eventIndex]}` || 'An unknown astronomical event.';
 
