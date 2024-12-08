@@ -23,6 +23,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 <Button asChild variant="ghost" className=""><Link to="/starmap" className="px-3 py-2 rounded-md text-base font-medium">Star</Link></Button>
                 <Button asChild variant="ghost" className=""><Link to="/aurora" className="px-3 py-2 rounded-md text-base font-medium">Aurora</Link></Button>
                 <Button asChild variant="ghost" className=""><Link to="/weather" className="px-3 py-2 rounded-md text-base font-medium">Weather</Link></Button>
+                <Button asChild variant="ghost" className=""><Link to="/events" className="px-3 py-2 rounded-md text-base font-medium">Events</Link></Button>
             </nav>
             {/* User Actions */}
             <div className="mt-4 sm:mt-0 flex items-center gap-2">

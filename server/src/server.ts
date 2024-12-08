@@ -3,12 +3,13 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
-import { randomEvent } from './utils/getEvent.js';
+import { randomEvent } from './utils/events.js';
 import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
 
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
+import { getDailyEvents } from "./utils/events.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -238,7 +239,8 @@ async function startServer() {
     });
     */
     app.get('/api/events', (req, res)=>{
-      res.json(randomEvent);
+      const dailyEventData = getDailyEvents();
+      res.json(dailyEventData);
     });
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
