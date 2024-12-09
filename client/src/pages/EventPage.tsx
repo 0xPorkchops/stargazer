@@ -85,7 +85,7 @@ export default function Events() {
                             <h2 className="text-xl font-semibold">{event.name}</h2>
                             <p className="text-gray-500">{new Date(event.startDate).toLocaleString()}</p>
                             <p className="my-2">{event.description}</p>
-                            <p className="text-sm text-gray-500">Location: {event.location.coordinates.longitude?.toFixed(6)} {event.location.coordinates.latitude?.toFixed(6)}</p>
+                            <p className="text-sm text-gray-500">Location: {event.location.coordinates[0].toFixed(6)}, {event.location.coordinates[1].toFixed(6)}</p>
                         </div>
                     ))}
                 </div>

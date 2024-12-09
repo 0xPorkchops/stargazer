@@ -19,7 +19,6 @@
     },
     "scripts": {
         "start": "node build/server.js",
-        "build": "tsc",
-        "postbuild": "cp ./src/utils/db.json ./build/utils/db.json"
+        "build": "tsc"
     }
 }
