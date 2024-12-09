@@ -157,6 +157,9 @@ export default function Events() {
                                         {event.location.coordinates[1]?.toFixed(6)}
                                     </p>
                                     <p className="text-sm text-gray-500">
+                                        Visibility: {event.visibility}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
                                         Frequency: {event.frequency}
                                     </p>
                                     <p className="text-sm text-gray-500">
