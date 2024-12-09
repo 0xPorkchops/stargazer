@@ -344,6 +344,7 @@ async function startServer() {
       res.send({ message: userId});
     });
 
+    // Route to get user data from client-side
     app.route('/api/user')
     .get(requireAuth(), async (req, res) => {
 
@@ -469,6 +470,7 @@ async function startServer() {
       }
     });
     
+    // Old route to get a user's events from client-side
     app.route('/api/user/events')
       .get(requireAuth(), async (req, res) => {
         const { userId } = getAuth(req);
@@ -563,6 +565,7 @@ async function startServer() {
         }
       });
 
+    // Old route to get all users with events or a specific user's events
     app.route('/api/admin/user/events')
     .get(async (req, res) => {
       try {
@@ -576,6 +579,7 @@ async function startServer() {
       }
     });
 
+    // Old route to notify users with their upcoming events
     app.get('/api/admin/user/notify', async (req, res) => {
       // const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1']; // cron-job.org IPs + localhost IP
      
@@ -601,6 +605,7 @@ async function startServer() {
       }
     });
 
+    // Route to get weather data
     app.get('/api/weather', async (req, res) => {
       const { paramLat = '42.3952875', paramLon = '-72.5310819' }:{paramLat?: string, paramLon?: string} = req.query;
       const apiKey = process.env.OPENWEATHER_KEY;
@@ -630,6 +635,7 @@ async function startServer() {
       }
     });
 
+    // Route to get forecast data
     app.get('/api/forecast', async (req, res) => {
       const { paramLat = '42.3952875', paramLon = '-72.5310819' }:{paramLat?: string, paramLon?: string} = req.query;
       const apiKey = process.env.OPENWEATHER_KEY;
@@ -776,7 +782,8 @@ async function startServer() {
       }
     }); 
 
-    app.get('/api/admin/user/notify/v2', async (req, res) => {
+    // Route to notify users with nearby upcoming events
+    app.get('/api/notify', async (req, res) => {
       // Optional: Uncomment and modify IP whitelist if needed
       /*
       const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1'];
