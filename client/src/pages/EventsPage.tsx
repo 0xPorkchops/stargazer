@@ -43,6 +43,7 @@ function EventsPage() {
       rows.forEach((row) => {
          // @ts-ignore 
         row['events'].forEach((event) => {
+          // @ts-ignore 
           eventName = event['type'].split('_').map(word => {
             return word.charAt(0).toUpperCase() + word.slice(1);
           }).join(' ');;

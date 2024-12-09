@@ -93,6 +93,7 @@ async function startServer() {
         const user = await usersCollection.findOne({clerkUserId: userId});
 
         if (user) { // user exists, return user
+          console.log("user exists")
           return res.status(200).json(user);
         }
 
@@ -125,7 +126,49 @@ async function startServer() {
       }
     })
     .post(requireAuth(), async (req, res) => {
-      console.log("Place holder for post at /api/user")
+      const { userId } = getAuth(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      try {
+        //console.log(userId);
+
+        const db = dbConnection.getDb();
+        const usersCollection: Collection<User> = db.collection('users');
+        const user = await usersCollection.findOne({ clerkUserId: userId });
+
+        if (user) { // user exists, return user
+          return res.status(200).json(user);
+        }
+
+        const { _firstname, _lastname, _username, _email, _last_location } = req.body;
+
+        if (!_firstname || !_lastname || !_username || !_email) {
+          return res.status(400).json({ error: "Missing user fields" });
+        }
+
+        const newuser = {
+          clerkUserId: userId,
+          _id: userId,
+          _firstname,
+          _lastname,
+          _username,
+          _email,
+          _last_location: _last_location
+            ? { ..._last_location, time: new Date() }
+            : undefined,
+        };
+
+        const result = await usersCollection.insertOne(newuser);
+        if (result.acknowledged) {
+          res.status(201).json(newuser);
+        } else {
+          res.status(500).json({ error: "Failed to create user" });
+        }
+      } catch (error) {
+        res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      }
     })
     .put(requireAuth(), async (req, res) => {
       console.log("Place holder for put at /api/user");
