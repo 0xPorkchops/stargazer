@@ -459,7 +459,7 @@ async function startServer() {
       }
     });
 
-    app.get('/api/notify', async (req, res) => {
+    app.post('/api/notify', async (req, res) => {
       const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1']; // cron-job.org IPs + localhost IP
      
       /*console.log(req.ip);
