@@ -783,7 +783,7 @@ async function startServer() {
     }); 
 
     // Route to notify users with nearby upcoming events
-    app.get('/api/notify', async (req, res) => {
+    app.post('/api/notify', async (req, res) => {
       // Optional: Uncomment and modify IP whitelist if needed
       /*
       const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1'];
