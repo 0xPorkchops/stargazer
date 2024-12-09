@@ -64,7 +64,7 @@ export default function Events() {
     // Fetch events from the API
     const fetchEvents = async (lat: number, lon: number, radius: number) => {
         try {
-            const eventResponse = await axios.get('/api/events/near', {
+            const eventResponse = await axios.get('http://localhost:3000/api/events/near', {
                 params: { paramLat: lat, paramLon: lon, paramRadius: radius },
             });
             setEvents(eventResponse.data);
@@ -116,21 +116,21 @@ export default function Events() {
                 <div className="events-container flex flex-col w-[90%]">
                     <h1 className="text-2xl font-bold mb-2 text-center">Nearby Events</h1>
                     <div className="flex justify-between mb-4">
-                        <div className="flex">
+                        <div className="flex items-center">
                             <p className="me-2">Radius: </p>
                             <input
-                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r w-1/8 bg-transparent border rounded mb-2 px-2"
+                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r w-1/8 justify-self-center bg-transparent border rounded mb-2 px-2"
                                 type="number"
                                 onChange={(e) => setRadius(Number(e.target.value))}
                                 placeholder="50"
                             />
                         </div>
-                        <div className="flex">
+                        <div className="flex items-center">
                             <p className="me-2">Sort By: </p>
                             <select
                                 value={sortPreference}
                                 onChange={(e) => setSortPreference(e.target.value as 'byLocation' | 'byTime')}
-                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r bg-transparent border rounded mb-2"
+                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r justify-self-center bg-transparent border rounded mb-2"
                             >
                                 <option value="byLocation">Location</option>
                                 <option value="byTime">Time</option>
@@ -146,21 +146,12 @@ export default function Events() {
                                 >
                                     <h2 className="text-xl font-semibold">{event.name}</h2>
                                     <p className="text-gray-500">
-                                        Start: {new Date(event.startDate).toLocaleString()}
-                                    </p>
-                                    <p className="text-gray-500">
-                                        End: {new Date(event.endDate).toLocaleString()}
+                                        {new Date(event.startDate).toLocaleString()}
                                     </p>
                                     <p className="my-2">{event.description}</p>
                                     <p className="text-sm text-gray-500">
-                                        Location: {event.location.coordinates[0]?.toFixed(6)}{", "}
-                                        {event.location.coordinates[1]?.toFixed(6)}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Frequency: {event.frequency}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Intensity : {event.intensity}
+                                        Location: {event.location.coordinates[0].toFixed(6)}{" "}
+                                        {event.location.coordinates[1].toFixed(6)}
                                     </p>
                                 </div>
                             ))}
