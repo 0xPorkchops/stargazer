@@ -6,7 +6,7 @@ import 'dotenv/config'; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
-import { EventsDatabase, eventsDatabase } from './events_access_module.js';
+import { eventsDatabase } from './events_access_module.js';
 
 import sgMail from '@sendgrid/mail';
 import { AstronomicalEvent } from './utils/events.js';
@@ -303,7 +303,7 @@ async function notifyUserWithNearbyEvents(userId: string) {
       message += ` • ${event.name || 'Unnamed Event'}: `;
       message += `${event.description || 'No description available'}\n`;
       message += `   Happening ${new Date(event.startDate).toLocaleString()} at: `;
-      message += `${event.location.coordinates.lat}, ${event.location.coordinates.lon}\n\n`;
+      message += `${event.location.coordinates[1]}, ${event.location.coordinates[0]}\n\n`;
     });
 
     const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean; } = {};

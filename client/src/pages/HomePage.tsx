@@ -1,7 +1,8 @@
-
-import { ThemeStatus } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
-import '../css/HomePage.css';
+import { ThemeStatus } from "@/lib/utils"
+import { useNavigate } from "react-router-dom"
+import { useUser } from '@clerk/clerk-react'
+import { useState } from 'react';
+import "../css/Homepage.css"
 
 function HomePage() {
   const navigate = useNavigate();

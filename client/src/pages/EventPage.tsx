@@ -67,6 +67,7 @@ export default function Events() {
             const eventResponse = await axios.get('http://localhost:3000/api/events/near', {
                 params: { paramLat: lat, paramLon: lon, paramRadius: radius },
             });
+            console.log(eventResponse.data);
             setEvents(eventResponse.data);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to fetch events");
