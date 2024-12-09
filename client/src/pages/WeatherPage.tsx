@@ -62,7 +62,7 @@ function WeatherDisplay() {
 
     return (
         <>
-            <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} />
+            <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} className="flex justify-center w-[100%] md:w-[45%] justify-self-center my-8"/>
             <div className="flex flex-col items-center">
                 <p className="mt-8">Today</p>
                 <p className="text-4xl mb-6">{weatherData.location}</p>

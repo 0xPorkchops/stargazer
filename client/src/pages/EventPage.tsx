@@ -61,7 +61,7 @@ export default function Events() {
 
     return (
         <>
-            <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} />
+            <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} className="flex justify-center w-[100%] md:w-[45%] justify-self-center my-8"/>
             <div className="flex justify-center">
             <div className="events-container flex flex-col w-[90%]">
             <h1 className="text-2xl font-bold mb-6 text-center">Nearby Events</h1>

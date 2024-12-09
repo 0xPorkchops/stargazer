@@ -2,7 +2,6 @@ import { ThemeStatus } from "@/lib/utils"
 import { useNavigate } from "react-router-dom"
 import { useUser } from '@clerk/clerk-react'
 import { useState } from 'react';
-import axios from 'axios';
 
 function HomePage() {
   const navigate = useNavigate();
