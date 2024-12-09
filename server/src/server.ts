@@ -1,13 +1,13 @@
 import express from 'express';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
+import { requireAuth, getAuth } from '@clerk/express';
 import 'dotenv/config'; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
 import { getAllEvents, clearDb, removeExpiredEvents, getEventById, addEvent } from './utils/db.js';
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
-import { AstronomicalEvent, getDailyEvents } from './utils/events.js';
+import { getDailyEvents } from './utils/events.js';
 import geolib from 'geolib';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -294,7 +294,6 @@ app.get('/api/events/near', async (req, res) => {
         );
 
         // Return true if the event is within the radius, otherwise false
-        console.log(distance/1000);
         return distance <= radius * 1000; // geolib.getDistance returns meters, so multiply the radius by 1000
       }
       return false; // Exclude events without valid location data

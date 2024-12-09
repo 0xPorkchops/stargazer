@@ -48,7 +48,7 @@ export default function Events() {
         if (selectedLocation) {
             fetchEvents(selectedLocation.lat, selectedLocation.lon, selectedRadius);
         }
-    }, [selectedLocation]);
+    }, [selectedLocation, selectedRadius]);
 
     // Conditional rendering for loading and error states
     if (loading) {
@@ -64,6 +64,7 @@ export default function Events() {
             <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} />
             <div className="flex justify-center">
             <div className="events-container flex flex-col w-[90%]">
+                <button onClick={()=>{setRadius(10000)}}></button>
             <h1 className="text-2xl font-bold mb-6 text-center">Nearby Events</h1>
             {events.length > 0 ? (
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
