@@ -9,7 +9,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/weather" element={<WeatherPage />} />
+      <Route path="/weather" element={<Weather />} />
       <Route path="/starmap" element={<StarMap />} />
       <Route path="/aurora" element={<Aurora />} />
       <Route path="/events" element={<Events />} />

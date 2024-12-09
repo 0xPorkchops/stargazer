@@ -35,8 +35,8 @@ function StarMap() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      latitude: '',
-      longitude: '',
+      latitude: 0,
+      longitude: 0,
       date: "",
       constellation: "ori",
       style: "default"
@@ -54,8 +54,8 @@ function StarMap() {
         body: JSON.stringify({
           "style": values.style.toString(),
           "observer": {
-          "latitude": parseFloat(values.latitude),
-          "longitude": parseFloat(values.longitude),
+          "latitude": values.latitude,
+          "longitude": values.longitude,
           "date": values.date.toString()
           },
           "view": {
@@ -146,6 +146,7 @@ function StarMap() {
                                     mode="single"
                                     selected={date}
                                     onSelect={(newDate) => {
+                                        if (!newDate) return;
                                         setDate(newDate);
                                         field.onChange(newDate.toISOString().split('T')[0]);
                                     }}

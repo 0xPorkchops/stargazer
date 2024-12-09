@@ -169,6 +169,7 @@ async function startServer() {
 
         return res.json(user.settings)
       } catch (error) {
+        console.log("error with settings")
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
     })

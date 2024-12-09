@@ -11,16 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Settings as SettingsIcon } from "lucide-react"
+import axios from 'axios';
 
 const phoneProviders = ["Verizon", "T-Mobile", "AT&T"] as const
 const themes = ["system", "light", "dark"] as const
 
 // Mock functions
 const getUserSettings = async () => {
-  const response = await fetch('http://localhost:3000/api/settings', {
-    method : "GET",
-    credentials : "include",
-  });
+  const response = await axios.get('http://localhost:3000/api/settings');
   if (!response.ok) throw new Error('Failed to fetch settings');
   return response.json();
 

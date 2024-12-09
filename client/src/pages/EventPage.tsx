@@ -11,7 +11,7 @@ export default function Events() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lon: number } | null>(null);
-    const [selectedRadius, setRadius] = useState<number>(25000);
+    const [selectedRadius] = useState<number>(25000);
 
     // Fetch events from the API
     const fetchEvents = async (lat: number, lon: number, radius: number) => {
