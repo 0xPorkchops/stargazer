@@ -23,6 +23,10 @@ class DatabaseConnection{
         try {
             await this.client.connect();
             this.db = this.client.db(dbname);
+
+            const eventsCollection = this.db.collection('astronomicalEvents');
+            await eventsCollection.createIndex({ 'location.coordinates': '2dsphere' });
+
             console.log('Successfully connected to MongoDB.');
 
             // Optional: Verify connection
