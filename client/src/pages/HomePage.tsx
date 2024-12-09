@@ -13,7 +13,7 @@ function HomePage() {
       {/* Centered content */}
       <div className="content-layer">
         {ThemeStatus() ? (<img src="/logored.png" alt="Star Gazers Logo" className="logo"/>) : (<img src="/logowhite.png" alt="Star Gazers Logo" className="logo"/>)}
-        <p className="text-[3rem] mt-4">Welcome to StarGazer!</p>
+        <p className="text-[3rem] mt-4 animate-resize-text">Welcome to StarGazer!</p>
         <input type="button" value="Click here" onClick={()=>navigate('/starmap')}></input>
       </div>
     </div>
