@@ -8,8 +8,9 @@ function HomePage() {
 
   return (
     <div className="background-container">
-      <div className="stars"></div>
-      <div className="twinkling"></div>
+
+      {!ThemeStatus() && <div className="stars"></div>}
+      {!ThemeStatus() && <div className="twinkling"></div>}
       {/* Centered content */}
       <div className="content-layer animate-fade-in">
         {ThemeStatus() ? (<img src="/logored.png" alt="Star Gazers Logo" className="logo"/>) : (<img src="/logowhite.png" alt="Star Gazers Logo" className="logo"/>)}
