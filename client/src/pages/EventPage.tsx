@@ -116,21 +116,21 @@ export default function Events() {
                 <div className="events-container flex flex-col w-[90%]">
                     <h1 className="text-2xl font-bold mb-2 text-center">Nearby Events</h1>
                     <div className="flex justify-between mb-4">
-                        <div className="flex items-center">
+                        <div className="flex">
                             <p className="me-2">Radius: </p>
                             <input
-                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r w-1/8 justify-self-center bg-transparent border rounded mb-2 px-2"
+                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r w-1/8 bg-transparent border rounded mb-2 px-2"
                                 type="number"
                                 onChange={(e) => setRadius(Number(e.target.value))}
                                 placeholder="50"
                             />
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex">
                             <p className="me-2">Sort By: </p>
                             <select
                                 value={sortPreference}
                                 onChange={(e) => setSortPreference(e.target.value as 'byLocation' | 'byTime')}
-                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r justify-self-center bg-transparent border rounded mb-2"
+                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r bg-transparent border rounded mb-2"
                             >
                                 <option value="byLocation">Location</option>
                                 <option value="byTime">Time</option>
