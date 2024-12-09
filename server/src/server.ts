@@ -4,11 +4,9 @@ import { fileURLToPath } from 'url';
 import { clerkMiddleware, clerkClient, requireAuth, getAuth } from '@clerk/express';
 import 'dotenv/config'; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
-import { getAllEvents, clearDb, removeExpiredEvents, getEventById, addEvent } from './utils/db.js';
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
-import { AstronomicalEvent, getDailyEvents } from './utils/events.js';
-import geolib from 'geolib';
+import { EventsDatabase, eventsDatabase } from './events_access_module.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -423,85 +421,68 @@ async function startServer() {
       res.sendFile(path.join(__dirname, '..', '..', 'client', 'build', 'index.html'));
     });
     */
-    app.get('/api/events', (req, res) => {
+   // Route to get all events
+    app.get('/api/events', async (req, res) => {
       try {
         // Remove expired events from the database
-        removeExpiredEvents();
-    
-        // Retrieve all events (updated)
-        const dailyEventData = getAllEvents();
-    
+        const eventdb = await eventsDatabase
+        await eventdb.removeExpiredEvents();
+
+        // Retrieve all events
+        const events = await eventdb.getAllEvents();
+
         // Respond with the events data
-        res.status(200).json(dailyEventData);
+        res.status(200).json(events);
       } catch (error) {
         // Handle any potential errors
         console.error('Error fetching events:', error);
         res.status(500).json({ error: 'An error occurred while fetching events.' });
       }
-    });    
+    });
 
-app.get('/api/events/near', async (req, res) => {
-  try {
-    // Retrieve the location (latitude, longitude, and radius) from query parameters
-    let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '500' }: { paramLat?: string, paramLon?: string, paramRadius?: string } = req.query;
+    // Route to get events near a specific location
+    app.get('/api/events/near', async (req, res) => {
+      try {
+        // Retrieve the location (latitude, longitude, and radius) from query parameters
+        let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '500' } = req.query;
 
-    // Parse the query parameters as floats
-    const latitude = parseFloat(paramLat);
-    const longitude = parseFloat(paramLon);
-    const radius = parseFloat(paramRadius);
+        // Parse the query parameters as floats
+        const latitude = parseFloat(paramLat as string);
+        const longitude = parseFloat(paramLon as string);
+        const radius = parseFloat(paramRadius as string);
 
-    // Validate if the parameters are valid numbers
-    if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {
-      return res.status(400).json({
-        error: 'Invalid location or radius values. Please provide valid numbers.',
-      });
-    }
+        // Validate if the parameters are valid numbers
+        if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {
+          return res.status(400).json({
+            error: 'Invalid location or radius values. Please provide valid numbers.',
+          });
+        }
 
-    // Make a GET request to the /api/events endpoint to get all events
-    const response = await fetch('http://localhost:3000/api/events'); // Assuming your server runs on port 3000
-    if (!response.ok) {
-      return res.status(500).json({
-        error: 'Error fetching events from the events endpoint.',
-      });
-    }
-
-    const events = await response.json();
-
-    // Filter events that are within the specified radius
-    const nearbyEvents = events.filter((event: any) => {
-      // Ensure the event has valid location data (latitude and longitude)
-      if (event.location && event.location.coordinates) {
-        const { latitude: eventLat, longitude: eventLon } = event.location.coordinates;
-
-        // Calculate the distance from the event to the provided location
-        const distance = geolib.getDistance(
-          { latitude: latitude, longitude: longitude },
-          { latitude: eventLat, longitude: eventLon }
+        // Find nearby events
+        const eventdb = await eventsDatabase
+        const nearbyEvents = await eventdb.findEventsNearLocation(
+          latitude, 
+          longitude, 
+          radius
         );
 
-        // Return true if the event is within the radius, otherwise false
-        console.log(distance/1000);
-        return distance <= radius * 1000; // geolib.getDistance returns meters, so multiply the radius by 1000
+        // Respond with the nearby events
+        res.status(200).json(nearbyEvents);
+      } catch (error) {
+        // Log the error and respond with a generic error message
+        console.error('Error fetching events near location:', error);
+        res.status(500).json({
+          error: 'An error occurred while fetching events near the location.',
+        });
       }
-      return false; // Exclude events without valid location data
     });
 
-    // Respond with the nearby events
-    res.status(200).json(nearbyEvents);
-  } catch (error) {
-    // Log the error and respond with a generic error message
-    console.error('Error fetching events near location:', error);
-    res.status(500).json({
-      error: 'An error occurred while fetching events near the location.',
-    });
-  }
-});
-
-
-    app.get('/api/events/:id', (req, res) => {
+    // Route to get a specific event by ID
+    app.get('/api/events/:id', async (req, res) => {
       try {
         const { id } = req.params; // Extract the event ID from the request parameters
-        const event = getEventById(id); // Get the event by ID
+        const eventdb = await eventsDatabase
+        const event = await eventdb.getEventById(id); // Get the event by ID
         
         if (event) {
           // If the event is found, return it with a 200 status code
@@ -517,35 +498,33 @@ app.get('/api/events/near', async (req, res) => {
       }
     });
 
-    app.delete('/api/events', (req, res) => {
+    // Route to clear all events
+    app.delete('/api/events', async (req, res) => {
       try {
-          clearDb(); // Clear the database
-          res.status(200).json({ message: 'All events have been cleared successfully' });
+        const eventdb = await eventsDatabase
+        await eventdb.clearDb(); // Clear the database
+        res.status(200).json({ message: 'All events have been cleared successfully' });
       } catch (error) {
-          console.error('Error clearing database:', error);
-          res.status(500).json({ error: 'Failed to clear events' });
+        console.error('Error clearing database:', error);
+        res.status(500).json({ error: 'Failed to clear events' });
       }
-  });
+    });
 
-  app.post('/api/events/populate', (req, res) => {
-    try {
-      // Generate 7 days worth of events
-      const eventsToAdd = [];
-      for (let i = 0; i < 7; i++) {
-        eventsToAdd.push(...getDailyEvents());
+    // Route to populate events
+    app.post('/api/events/populate', async (req, res) => {
+      try {
+        // Populate the database with a week of events
+        const eventdb = await eventsDatabase
+        await eventdb.populateEvents();
+
+        // Respond with a success message
+        res.status(200).json({ message: 'Successfully populated the database with a week of events.' });
+      } catch (error) {
+        // Handle any errors
+        console.error('Error populating events:', error);
+        res.status(500).json({ error: 'An error occurred while populating events.' });
       }
-  
-      // Add the generated events to the database
-      eventsToAdd.forEach(event => addEvent(event));
-  
-      // Respond with a success message
-      res.status(200).json({ message: 'Successfully populated the database with a week of events.' });
-    } catch (error) {
-      // Handle any errors
-      console.error('Error populating events:', error);
-      res.status(500).json({ error: 'An error occurred while populating events.' });
-    }
-  });
+    }); 
   
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
