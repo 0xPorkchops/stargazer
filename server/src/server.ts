@@ -136,6 +136,30 @@ function sendText(phone: string, phoneProvider: string, message: string): boolea
   return sendEmail(SMSGatewayEmail, '', message);
 }
 
+function isItTimeToNotify(eventTime: number, notifyLeadTime: '1h' | '6h' | '12h' | '24h'): boolean {
+  function getNotifyTimeInMs(frequency: '1h' | '6h' | '12h' | '24h'): number {
+    switch (frequency) {
+      case '1h':
+        return 1 * 60 * 60 * 1000;
+      case '6h':
+        return 6 * 60 * 60 * 1000;
+      case '12h':
+        return 12 * 60 * 60 * 1000;
+      case '24h':
+        return 24 * 60 * 60 * 1000;
+      default:
+        return 24 * 60 * 60 * 1000;
+    }
+  }
+
+  function truncateToHour(ms: number): number {
+    return Math.floor(ms / 3600) * 3600;
+  }
+
+  const currentTime = truncateToHour(Date.now());
+  return truncateToHour(eventTime) - truncateToHour(currentTime) <= truncateToHour(getNotifyTimeInMs(notifyLeadTime));
+}
+
 async function getUsersWithEvents(userId?: string): Promise<{ userId: string; name: string; events: Event[] }[]>{
   try {
     const db = dbConnection.getDb();
@@ -171,10 +195,10 @@ async function getUsersWithEvents(userId?: string): Promise<{ userId: string; na
       }
     ).toArray();
 
-    // Filter for only users with events
+    // Filter for only users with events that are to be notified according to their notification lead time setting
     const usersWithEvents = users.reduce((acc, user) => 
       (user.events && user.events.length > 0)
-      ? [...acc, { userId: user.clerkUserId, name: user.settings?.name || 'Unknown Name', events: user.events }] 
+      ? [...acc, { userId: user.clerkUserId, name: user.settings?.name || 'Unknown Name', events: user.events.filter(event => isItTimeToNotify(event.time.getTime(), user.settings?.notifyFrequency || '24h')) }] 
       : acc, 
       [] as { userId: string; name: string; events: Event[] }[]
     );
