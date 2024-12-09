@@ -90,10 +90,10 @@ function sendEmail(to: string, subject: string, text: string): boolean {
     return true;
 }
 
-function generateEventNotificationMessage(firstname: string, lastname: string, events: Event[]): string {
-  let message = `Hello ${firstname} ${lastname},\n\nHere are your upcoming celestial events:\n\n`;
+function generateEventNotificationMessage(name: string, events: Event[]): string {
+  let message = `Hello ${name},\n\nHere are your upcoming celestial events:\n\n`;
   events.forEach(event => {
-    message += ` • ${event.name || 'Unnamed Event: '}`;
+    message += ` • ${event.name || 'Unnamed Event'}: `;
     message += `${event.description || 'No description available'}\n`;
     message += `   Happening ${event.time.toLocaleString()} at: `;
     message += `${event.latitude}, ${event.longitude}\n\n`;
@@ -101,7 +101,8 @@ function generateEventNotificationMessage(firstname: string, lastname: string, e
 
   return message;
 }
-const phoneProviderEmailSuffixMap: { [key: string]: string } = { // todo: verify these gateways and add more
+
+const phoneProviderEmailSuffixMap: { [key: string]: string } = {
   'AT&T': 'txt.att.net',
   'Verizon': 'mypixmessages.com',
   'T-Mobile': 'tmomail.net',
@@ -133,6 +134,97 @@ function sendText(phone: string, phoneProvider: string, message: string): boolea
     return false;
   }
   return sendEmail(SMSGatewayEmail, '', message);
+}
+
+async function getUsersWithEvents(userId?: string): Promise<{ userId: string; name: string; events: Event[] }[]>{
+  try {
+    const db = dbConnection.getDb();
+    const usersCollection: Collection<User> = db.collection('users');
+
+    // If userId is provided, fetch events for that specific user
+    if (userId) {
+      const user = await usersCollection.findOne(
+        { clerkUserId: userId },
+        { projection: { events: 1, 'settings.name': 1 } }
+      );
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return [{
+        userId: user.clerkUserId,
+        name: user.settings?.name || 'Unknown Name',
+        events: user.events || []
+      }];
+    }
+
+    // If no userId, fetch all users with their events
+    const users = await usersCollection.find(
+      {},
+      { 
+        projection: { 
+          clerkUserId: 1, 
+          'settings.name': 1, 
+          events: 1 
+        } 
+      }
+    ).toArray();
+
+    // Filter for only users with events
+    const usersWithEvents = users.reduce((acc, user) => 
+      (user.events && user.events.length > 0)
+      ? [...acc, { userId: user.clerkUserId, name: user.settings?.name || 'Unknown Name', events: user.events }] 
+      : acc, 
+      [] as { userId: string; name: string; events: Event[] }[]
+    );
+
+    return usersWithEvents;
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : 'Unknown error');
+  }
+}
+
+async function notifyUser(userId: string, name: string, events: Event[]) {
+  if (!userId || !name || !events) {
+    throw new Error('Missing required parameters: { userId: string, name: string, events: Event[] }');
+  }
+
+  if (events.length === 0) {
+    return { message: 'No upcoming events found' };
+  }
+
+  const message = generateEventNotificationMessage(name, events);
+
+  const db = dbConnection.getDb();
+  const usersCollection: Collection<User> = db.collection('users');
+  const user = await usersCollection.findOne({ clerkUserId: userId });
+  if (!user) {
+    throw new Error('User not found');
+  }
+  if (!user.settings) {
+    throw new Error('User settings not complete');
+  }
+  const notifyEmail = user.settings.notifyEmail;
+  const notifyPhone = user.settings.notifyPhone;
+  const email = user.settings.email;
+  const phone = user.settings.phone;
+  const phoneProvider = user.settings.phoneProvider;
+
+  const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean;} = {};
+
+  if (notifyEmail) {
+    const emailSent = sendEmail(email, "Upcoming Celestial Events", message);
+    response.email = email;
+    response.emailSent = emailSent;
+  }
+
+  if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
+    const textSent = sendText(phone, phoneProvider, message);
+    response.phone = `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`;
+    response.textSent = textSent;
+  }
+  return response;
 }
 
 async function startServer() {
@@ -274,7 +366,7 @@ async function startServer() {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
     });
-
+    
     app.route('/api/user/events')
       .get(requireAuth(), async (req, res) => {
         const { userId } = getAuth(req);
@@ -372,57 +464,38 @@ async function startServer() {
     app.route('/api/admin/user/events')
     .get(async (req, res) => {
       try {
-        const db = dbConnection.getDb();
-        const usersCollection: Collection<User> = db.collection('users');
-        
-        // Check if a specific user ID is provided
-        const { userId } = req.query;
-  
-        // If userId is provided, fetch events for that specific user
-        if (userId) {
-          const user = await usersCollection.findOne(
-            { clerkUserId: userId as string },
-            { projection: { events: 1, _firstname: 1, _lastname: 1 } }
-          );
-  
-          if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-          }
-  
-          return res.status(200).json({
-            userId: user.clerkUserId,
-            name: `${user._firstname} ${user._lastname}`,
-            events: user.events || []
-          });
-        }
-  
-        // If no userId, fetch all users with their events
-        const users = await usersCollection.find(
-          {},
-          { 
-            projection: { 
-              clerkUserId: 1, 
-              _firstname: 1, 
-              _lastname: 1, 
-              events: 1 
-            } 
-          }
-        ).toArray();
-  
-        // Transform the result to include only users with events
-        const usersWithEvents = users
-          .filter(user => user.events && user.events.length > 0)
-          .map(user => ({
-            userId: user.clerkUserId,
-            name: `${user._firstname} ${user._lastname}`,
-            events: user.events
-          }));
-  
-        res.status(200).json(usersWithEvents);
+        const userId = req.query.userId as string | undefined;
+        const eventsData = await getUsersWithEvents(userId);
+        res.status(200).json(eventsData);
       } catch (error) {
         res.status(500).json({ 
           error: error instanceof Error ? error.message : 'Unknown error' 
-        });
+      });
+      }
+    });
+
+    app.get('/api/admin/user/notify', async (req, res) => {
+      // const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1']; // cron-job.org IPs + localhost IP
+     
+      /*console.log(req.ip);
+      if (!whitelistIPs.includes(req.ip || 'FalseIP')) {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }*/
+
+      // Optional: specify a singular user to notify
+      const userId = req.query.userId as string | undefined;
+
+      try {
+        const usersWithEvents = await getUsersWithEvents(userId);
+
+        const notifications = await Promise.all(usersWithEvents.map(async (user) => {
+          const { userId, name, events } = user;
+          return notifyUser(userId, name, events);
+        }));
+
+        res.status(200).json({ message: 'Notifications sent', notifications });
+      } catch (error) {
+        res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
     });
 
@@ -457,61 +530,6 @@ async function startServer() {
         }
         res.status(500).json({ error: 'Failed to fetch weather data' });
       }
-    });
-
-    app.post('/api/notify', async (req, res) => {
-      const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1']; // cron-job.org IPs + localhost IP
-     
-      /*console.log(req.ip);
-      if (!whitelistIPs.includes(req.ip || 'FalseIP')) {
-        return res.status(403).json({ error: 'Unauthorized access' });
-      }*/
-
-      const userId = req.query.userId as string;
-      const firstname = req.query.firstname as string;
-      const lastname = req.query.lastname as string;
-      const events: Event[] = JSON.parse(req.query.events as string);
-
-      if (!userId || !firstname || !lastname || !events) {
-        return res.status(400).json({ error: 'Missing required query parameter(s): { userId: string, firstname: string, lastname: string, events: Event[] }' });
-      }
-
-      if (events.length === 0) {
-        return res.status(204).json({ message: 'No upcoming events found' });
-      }
-
-      const message = generateEventNotificationMessage(firstname, lastname, events);
-      // Todo: change to email and text message generation functions where phone returns an array of text messages due to character limits
-
-      const db = dbConnection.getDb();
-      const usersCollection: Collection<User> = db.collection('users');
-      const user = await usersCollection.findOne({ clerkUserId: userId });
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-      if (!user.settings) {
-        return res.status(404).json({ error: 'User settings not complete' });
-      }
-      const notifyEmail = user.settings.notifyEmail;
-      const notifyPhone = user.settings.notifyPhone;
-      const email = user.settings.email;
-      const phone = user.settings.phone;
-      const phoneProvider = user.settings.phoneProvider;
-
-      const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean;} = {};
-
-      if (notifyEmail) {
-        const emailSent = sendEmail(email, "Upcoming Celestial Events", message);
-        response.email = email;
-        response.emailSent = emailSent;
-      }
-
-      if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
-        const textSent = sendText(phone, phoneProvider, message);
-        response.phone = `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`;
-        response.textSent = textSent;
-      }
-      return res.json({ message: response });
     });
     
     /* 
