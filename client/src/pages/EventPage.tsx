@@ -64,7 +64,7 @@ export default function Events() {
     // Fetch events from the API
     const fetchEvents = async (lat: number, lon: number, radius: number) => {
         try {
-            const eventResponse = await axios.get('http://localhost:3000/api/events/near', {
+            const eventResponse = await axios.get('/api/events/near', {
                 params: { paramLat: lat, paramLon: lon, paramRadius: radius },
             });
             setEvents(eventResponse.data);
