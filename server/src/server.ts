@@ -672,10 +672,11 @@ async function startServer() {
     So let's stick to using Express for the API and let Vercel handle the client-side routing.
     */
 
+    /*
     app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname, '..', '..', 'client', 'build', 'index.html'));
     });
-    
+    */
    // Route to get all events
     app.get('/api/events', async (req, res) => {
       try {
