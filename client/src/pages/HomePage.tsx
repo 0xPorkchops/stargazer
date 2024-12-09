@@ -11,7 +11,7 @@ function HomePage() {
       <div className="stars"></div>
       <div className="twinkling"></div>
       {/* Centered content */}
-      <div className="content-layer">
+      <div className="content-layer animate-fade-in">
         {ThemeStatus() ? (<img src="/logored.png" alt="Star Gazers Logo" className="logo"/>) : (<img src="/logowhite.png" alt="Star Gazers Logo" className="logo"/>)}
         <p className="text-[3rem] mt-4">Welcome to StarGazer!</p>
         <input type="button" value="Click here" onClick={()=>navigate('/starmap')}></input>
