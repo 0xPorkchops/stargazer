@@ -13,10 +13,5 @@ export interface AstronomicalEvent {
 
 interface Location{
     type: string;
-    coordinates: Coordinates;
+    coordinates: number[];
   }
-
-interface Coordinates{
-    latitude: number;
-    longitude: number;
-}

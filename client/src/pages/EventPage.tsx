@@ -43,14 +43,14 @@ export default function Events() {
             const distanceA = calculateDistance(
                 selectedLocation.lat,
                 selectedLocation.lon,
-                a.location.coordinates.latitude,
-                a.location.coordinates.longitude
+                a.location.coordinates[0],
+                a.location.coordinates[1]
             );
             const distanceB = calculateDistance(
                 selectedLocation.lat,
                 selectedLocation.lon,
-                b.location.coordinates.latitude,
-                b.location.coordinates.longitude
+                b.location.coordinates[0],
+                b.location.coordinates[1]
             );
             return distanceA - distanceB;
         });
@@ -119,7 +119,7 @@ export default function Events() {
                         <div className="flex items-center">
                             <p className="me-2">Radius: </p>
                             <input
-                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50 w-1/8 justify-self-center bg-transparent border rounded mb-2 px-2"
+                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r w-1/8 justify-self-center bg-transparent border rounded mb-2 px-2"
                                 type="number"
                                 onChange={(e) => setRadius(Number(e.target.value))}
                                 placeholder="50"
@@ -130,7 +130,7 @@ export default function Events() {
                             <select
                                 value={sortPreference}
                                 onChange={(e) => setSortPreference(e.target.value as 'byLocation' | 'byTime')}
-                                className="border rounded px-2 py-1"
+                                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r justify-self-center bg-transparent border rounded mb-2"
                             >
                                 <option value="byLocation">Location</option>
                                 <option value="byTime">Time</option>
@@ -150,8 +150,8 @@ export default function Events() {
                                     </p>
                                     <p className="my-2">{event.description}</p>
                                     <p className="text-sm text-gray-500">
-                                        Location: {event.location.coordinates.latitude?.toFixed(6)}{" "}
-                                        {event.location.coordinates.longitude?.toFixed(6)}
+                                        Location: {event.location.coordinates[0].toFixed(6)}{" "}
+                                        {event.location.coordinates[1].toFixed(6)}
                                     </p>
                                 </div>
                             ))}
