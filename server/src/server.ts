@@ -66,13 +66,13 @@ interface Event {
   createdAt: Date;
 }
 
-function sendMail(to: string, subject: string, text: string): boolean {
+function sendEmail(to: string, subject: string, text: string): boolean {
   const mailAPIKey = process.env.SENDGRID_API_KEY || 'FalseMailAPIKey';
   sgMail.setApiKey(mailAPIKey);
 
   const msg = {
     to,
-    from: 'cameronproul@umass.edu',
+    from: process.env.SENDGRID_SENDER_EMAIL || 'FalseSenderEmail',
     subject,
     text,
   };
@@ -90,6 +90,51 @@ function sendMail(to: string, subject: string, text: string): boolean {
     return true;
 }
 
+function generateEventNotificationMessage(firstname: string, lastname: string, events: Event[]): string {
+  let message = `Hello ${firstname} ${lastname},\n\nHere are your upcoming celestial events:\n\n`;
+  events.forEach(event => {
+    message += ` • ${event.name || 'Unnamed Event: '}`;
+    message += `${event.description || 'No description available'}\n`;
+    message += `   Happening ${event.time.toLocaleString()} at: `;
+    message += `${event.latitude}, ${event.longitude}\n\n`;
+  });
+
+  return message;
+}
+const phoneProviderEmailSuffixMap: { [key: string]: string } = { // todo: verify these gateways and add more
+  'AT&T': 'txt.att.net',
+  'Verizon': 'mypixmessages.com',
+  'T-Mobile': 'tmomail.net',
+  'Virgin Mobile': 'vmobl.com',
+  'Tracfone': 'mmst5.tracfone.com',
+  'Metro PCS': 'mymetropcs.com',
+  'Boost Mobile': 'myboostmobile.com',
+  'Cricket': 'sms.cricketwireless.net',
+  'Google Fi': 'msg.fi.google.com',
+  'U.S. Cellular': 'email.uscc.net',
+  'Ting': 'message.ting.com',
+  'Consumer Cellular': 'mailmymobile.net',
+  'C-Spire': 'cspire1.com',
+  'Page Plus': 'vtext.com'
+};
+
+function generateSMSGatewayEmail(phone: string, phoneProvider: string): string | null {
+  const phoneProviderEmailSuffix = phoneProviderEmailSuffixMap[phoneProvider];
+  if (!phoneProviderEmailSuffix) {
+    return null;
+  }
+
+  return `${phone}@${phoneProviderEmailSuffix}`;
+}
+
+function sendText(phone: string, phoneProvider: string, message: string): boolean {
+  const SMSGatewayEmail = generateSMSGatewayEmail(phone, phoneProvider)
+  if (!SMSGatewayEmail) {
+    return false;
+  }
+  return sendEmail(SMSGatewayEmail, '', message);
+}
+
 async function startServer() {
   try {
     await dbConnection.connect();
@@ -97,12 +142,14 @@ async function startServer() {
     // Serve static files from the React app
     app.use(express.static(path.join(__dirname, '..', '..', 'client', 'build')));
 
+    // API routes
+
+    // Get Clerk ID route, for development purposes
     app.get('/api/id', requireAuth({ signInUrl: '/sign-in' }), async (req, res) => {
       const { userId } = getAuth(req);
       res.send({ message: userId});
     });
 
-    // API routes
     app.route('/api/user')
     .get(requireAuth(), async (req, res) => {
 
@@ -412,37 +459,30 @@ async function startServer() {
       }
     });
 
-    app.get('/api/notify/:userId', async (req, res) => {
+    app.get('/api/notify', async (req, res) => {
       const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1']; // cron-job.org IPs + localhost IP
-      
-      const phoneProviderEmailSuffixMap: { [key: string]: string } = { // todo: verify these gateways and add more
-        'AT&T': 'txt.att.net',
-        'Verizon': 'mypixmessages.com',
-        'T-Mobile': 'tmomail.net',
-        'Virgin Mobile': 'vmobl.com',
-        'Tracfone': 'mmst5.tracfone.com',
-        'Metro PCS': 'mymetropcs.com',
-        'Boost Mobile': 'myboostmobile.com',
-        'Cricket': 'sms.cricketwireless.net',
-        'Google Fi': 'msg.fi.google.com',
-        'U.S. Cellular': 'email.uscc.net',
-        'Ting': 'message.ting.com',
-        'Consumer Cellular': 'mailmymobile.net',
-        'C-Spire': 'cspire1.com',
-        'Page Plus': 'vtext.com'
-      };
-
+     
       /*console.log(req.ip);
       if (!whitelistIPs.includes(req.ip || 'FalseIP')) {
         return res.status(403).json({ error: 'Unauthorized access' });
       }*/
 
-      const userId = req.params.userId;
-      // handle userId null or nonexistent
-      // get user email and phone number + preferences from mongodb
-      // send email and/or text message depending on preferences
-      // if they toggle both off, delete cron job
-      // if they toggle one on, create cron job
+      const userId = req.query.userId as string;
+      const firstname = req.query.firstname as string;
+      const lastname = req.query.lastname as string;
+      const events: Event[] = JSON.parse(req.query.events as string);
+
+      if (!userId || !firstname || !lastname || !events) {
+        return res.status(400).json({ error: 'Missing required query parameter(s): { userId: string, firstname: string, lastname: string, events: Event[] }' });
+      }
+
+      if (events.length === 0) {
+        return res.status(204).json({ message: 'No upcoming events found' });
+      }
+
+      const message = generateEventNotificationMessage(firstname, lastname, events);
+      // Todo: change to email and text message generation functions where phone returns an array of text messages due to character limits
+
       const db = dbConnection.getDb();
       const usersCollection: Collection<User> = db.collection('users');
       const user = await usersCollection.findOne({ clerkUserId: userId });
@@ -461,17 +501,17 @@ async function startServer() {
       const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean;} = {};
 
       if (notifyEmail) {
-        const emailSent = sendMail(email, 'Test email', 'Test email 2');
+        const emailSent = sendEmail(email, "Upcoming Celestial Events", message);
         response.email = email;
         response.emailSent = emailSent;
       }
 
       if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
-        const textSent = sendMail(`${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`, 'Test', 'Test2');
+        const textSent = sendText(phone, phoneProvider, message);
         response.phone = `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`;
-        response.textSent = textSent
+        response.textSent = textSent;
       }
-      res.json({ message: response });
+      return res.json({ message: response });
     });
     
     /* 
