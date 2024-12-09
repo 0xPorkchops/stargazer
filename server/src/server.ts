@@ -1,14 +1,12 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import { clerkMiddleware, clerkClient, requireAuth, getAuth, PhoneNumber } from '@clerk/express';
-
-import "dotenv/config"; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
+import express from 'express';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { requireAuth, getAuth, PhoneNumber } from '@clerk/express';
+import 'dotenv/config'; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
-
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
+import { EventsDatabase, eventsDatabase } from './events_access_module.js';
 
 import sgMail from '@sendgrid/mail';
 
@@ -524,15 +522,11 @@ async function startServer() {
     });
 
     app.get('/api/weather', async (req, res) => {
-      const { paramLat = '42.3952875', paramLong = '-72.5310819' }:{paramLat?: string, paramLong?: string} = req.query;
+      const { paramLat = '42.3952875', paramLon = '-72.5310819' }:{paramLat?: string, paramLon?: string} = req.query;
       const apiKey = process.env.OPENWEATHER_KEY;
       const lat = parseFloat(paramLat);
-      const long = parseFloat(paramLong);
-      console.log(lat);
-      console.log(long);
-      console.log(apiKey);
-    
-      const apiURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=${apiKey}&units=imperial`;
+      const lon = parseFloat(paramLon);
+      const apiURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
     
       try {
         // Fetch data from the OpenWeather API
@@ -555,7 +549,35 @@ async function startServer() {
         res.status(500).json({ error: 'Failed to fetch weather data' });
       }
     });
+
+    app.get('/api/forecast', async (req, res) => {
+      const { paramLat = '42.3952875', paramLon = '-72.5310819' }:{paramLat?: string, paramLon?: string} = req.query;
+      const apiKey = process.env.OPENWEATHER_KEY;
+      const lat = parseFloat(paramLat);
+      const lon = parseFloat(paramLon);
+      const apiURL = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
     
+      try {
+        // Fetch data from the OpenWeather API
+        const response = await fetch(apiURL);
+    
+        // Check if the response is ok (status code 200-299)
+        if (!response.ok) {
+          throw new Error(`OpenWeather API error: ${response.statusText}`);
+        }
+    
+        // Parse the JSON data
+        const forecastData = await response.json();
+    
+        // Send the JSON data to the client
+        res.json(forecastData);
+      } catch (error) {
+        if(error instanceof Error){
+          console.error('Error fetching forecast data:', error.message);
+        }
+        res.status(500).json({ error: 'Failed to fetch forecast data' });
+      }
+    });
     /* 
     The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
     Vercel routes static/client-side files instead of Express, but this can be changed in vercel.json if needed.
@@ -569,7 +591,111 @@ async function startServer() {
       res.sendFile(path.join(__dirname, '..', '..', 'client', 'build', 'index.html'));
     });
     */
+   // Route to get all events
+    app.get('/api/events', async (req, res) => {
+      try {
+        // Remove expired events from the database
+        const eventdb = await eventsDatabase
+        await eventdb.removeExpiredEvents();
 
+        // Retrieve all events
+        const events = await eventdb.getAllEvents();
+
+        // Respond with the events data
+        res.status(200).json(events);
+      } catch (error) {
+        // Handle any potential errors
+        console.error('Error fetching events:', error);
+        res.status(500).json({ error: 'An error occurred while fetching events.' });
+      }
+    });
+
+    // Route to get events near a specific location
+    app.get('/api/events/near', async (req, res) => {
+      try {
+        // Retrieve the location (latitude, longitude, and radius) from query parameters
+        let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '500' } = req.query;
+
+        // Parse the query parameters as floats
+        const latitude = parseFloat(paramLat as string);
+        const longitude = parseFloat(paramLon as string);
+        const radius = parseFloat(paramRadius as string);
+
+        // Validate if the parameters are valid numbers
+        if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {
+          return res.status(400).json({
+            error: 'Invalid location or radius values. Please provide valid numbers.',
+          });
+        }
+
+        // Find nearby events
+        const eventdb = await eventsDatabase
+        const nearbyEvents = await eventdb.findEventsNearLocation(
+          latitude, 
+          longitude, 
+          radius
+        );
+
+        // Respond with the nearby events
+        res.status(200).json(nearbyEvents);
+      } catch (error) {
+        // Log the error and respond with a generic error message
+        console.error('Error fetching events near location:', error);
+        res.status(500).json({
+          error: 'An error occurred while fetching events near the location.',
+        });
+      }
+    });
+
+    // Route to get a specific event by ID
+    app.get('/api/events/:id', async (req, res) => {
+      try {
+        const { id } = req.params; // Extract the event ID from the request parameters
+        const eventdb = await eventsDatabase
+        const event = await eventdb.getEventById(id); // Get the event by ID
+        
+        if (event) {
+          // If the event is found, return it with a 200 status code
+          res.status(200).json(event);
+        } else {
+          // If the event is not found, return a 404 status code
+          res.status(404).json({ error: 'Event not found' });
+        }
+      } catch (error) {
+        // Handle any errors
+        console.error('Error fetching event by ID:', error);
+        res.status(500).json({ error: 'An error occurred while fetching the event.' });
+      }
+    });
+
+    // Route to clear all events
+    app.delete('/api/events', async (req, res) => {
+      try {
+        const eventdb = await eventsDatabase
+        await eventdb.clearDb(); // Clear the database
+        res.status(200).json({ message: 'All events have been cleared successfully' });
+      } catch (error) {
+        console.error('Error clearing database:', error);
+        res.status(500).json({ error: 'Failed to clear events' });
+      }
+    });
+
+    // Route to populate events
+    app.post('/api/events/populate', async (req, res) => {
+      try {
+        // Populate the database with a week of events
+        const eventdb = await eventsDatabase
+        await eventdb.populateEvents();
+
+        // Respond with a success message
+        res.status(200).json({ message: 'Successfully populated the database with a week of events.' });
+      } catch (error) {
+        // Handle any errors
+        console.error('Error populating events:', error);
+        res.status(500).json({ error: 'An error occurred while populating events.' });
+      }
+    }); 
+  
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

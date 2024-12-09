@@ -13,9 +13,14 @@
     "concurrently": "^9.0.1"
   },
   "dependencies": {
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@geoapify/geocoder-autocomplete": "^2.1.0",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
-    "react-router-dom": "^6.28.0"
+    "geolib": "^3.3.4",
+    "react-router-dom": "^6.28.0",
+    "uuid": "^11.0.3"
   }
 }

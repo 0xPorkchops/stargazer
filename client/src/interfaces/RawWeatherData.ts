@@ -3,12 +3,13 @@ export default interface RawWeatherData {
     weather: {
       main: string;
       description: string;
+      id: string;
     }[];
     main: {
         temp: number;
-      feels_like: number;
-      temp_min: number;
-      temp_max: number;
+        feels_like: number;
+        temp_min: number;
+        temp_max: number;
     };
     clouds: {
       all: number;
