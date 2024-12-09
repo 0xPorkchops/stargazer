@@ -4,6 +4,7 @@ import { GetGeolocation } from '../lib/utils';
 import AddressAutoCompleteInput from '@/components/AddressSearchInput';
 import LoadingContainer from '@/components/LoadingContainer';
 import { AstronomicalEvent } from '@/interfaces/AstronomicalEvent';
+import '../css/event.css';
 
 
 export default function Events() {
@@ -65,12 +66,15 @@ export default function Events() {
             <div className="flex justify-center">
             <div className="events-container flex flex-col w-[90%]">
             <h1 className="text-2xl font-bold mb-2 text-center">Nearby Events</h1>
+            <div className="flex justify-center">
+                <p className="me-2">Radius: </p>
             <input
-                className="justify-self-center bg-transparent border rounded mb-2"
+                className="placeholder-[hsl(var(--foreground))] placeholder-opacity-50r w-1/8 justify-self-center bg-transparent border rounded mb-2 px-2"
                 type="number"
                 onChange={(e) => setRadius(Number(e.target.value))}
-                placeholder="Enter radius"
+                placeholder="50"
             />
+            </div>
             {events.length > 0 ? (
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {events.map((event) => (
