@@ -1,13 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 
-interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
 interface Location {
   type: string;
-  coordinates: Coordinates;
+  coordinates: number[];
 }
 
 export interface AstronomicalEvent {
@@ -168,7 +163,7 @@ const randomDate = (startDate = new Date(), daysOffsetMin = 1, daysOffsetMax = 7
 
 export const generateRandomCoord = (
   coordinateRange: { latRange: number[]; lonRange: number[] }
-): { latitude: number; longitude: number } => {
+): number[] => {
   const latRangeStart = coordinateRange.latRange[0],
     latRangeEnd = coordinateRange.latRange[1];
   const lonRangeStart = coordinateRange.lonRange[0],
@@ -177,10 +172,10 @@ export const generateRandomCoord = (
   const latDifference = latRangeEnd - latRangeStart;
   const lonDifference = lonRangeEnd - lonRangeStart;
 
-  return {
-    latitude: latRangeStart + Math.random() * latDifference,
-    longitude: lonRangeStart + Math.random() * lonDifference,
-  };
+  return [ 
+    lonRangeStart + Math.random() * lonDifference,
+    latRangeStart + Math.random() * latDifference,
+  ];
 };
 
 export const generateRandomAstronomicalEvent = (): AstronomicalEvent => {
