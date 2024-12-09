@@ -1,5 +1,6 @@
 import { Settings } from '@/components/Settings'
 import { Button } from '@/components/ui/button'
+import { Toaster } from '@/components/ui/toaster';
 import { SignedIn, SignedOut, SignInButton, UserButton} from '@clerk/clerk-react'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Link, useLocation } from "react-router-dom";
@@ -48,6 +49,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <main>
             {children}
         </main>
+        <Toaster />
     </>
   )
 }

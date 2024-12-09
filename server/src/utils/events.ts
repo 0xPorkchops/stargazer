@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 
 interface Coordinates {
-  latitude: number;
-  longitude: number;
+  lat: number;
+  lon: number;
 }
 
 interface Location {
@@ -14,8 +14,8 @@ export interface AstronomicalEvent {
   id: string;
   type: string;
   name: string;
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
   location: Location;
   description: string;
   visibility: string;
@@ -162,13 +162,13 @@ const randomDate = (startDate = new Date(), daysOffsetMin = 1, daysOffsetMax = 7
     date.setSeconds(Math.floor(Math.random() * 60)); // Random second (0-59)
     date.setMilliseconds(Math.floor(Math.random() * 1000)); // Random millisecond (0-999)
   
-    return date.toISOString();
+    return date;
   };
   
 
 export const generateRandomCoord = (
   coordinateRange: { latRange: number[]; lonRange: number[] }
-): { latitude: number; longitude: number } => {
+): Coordinates => {
   const latRangeStart = coordinateRange.latRange[0],
     latRangeEnd = coordinateRange.latRange[1];
   const lonRangeStart = coordinateRange.lonRange[0],
@@ -178,8 +178,8 @@ export const generateRandomCoord = (
   const lonDifference = lonRangeEnd - lonRangeStart;
 
   return {
-    latitude: latRangeStart + Math.random() * latDifference,
-    longitude: lonRangeStart + Math.random() * lonDifference,
+    lat: latRangeStart + Math.random() * latDifference,
+    lon: lonRangeStart + Math.random() * lonDifference,
   };
 };
 

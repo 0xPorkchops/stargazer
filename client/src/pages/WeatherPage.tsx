@@ -18,10 +18,10 @@ function WeatherDisplay() {
     // Fetch weather data based on the provided latitude and longitude
     const fetchWeather = async (lat: number, lon: number) => {
         try {
-            const weatherResponse = await axios.get('http://localhost:3000/api/weather', {
+            const weatherResponse = await axios.get('/api/weather', {
                 params: { paramLat: lat, paramLon: lon },
             });
-            const forecastResponse = await axios.get('http://localhost:3000/api/forecast', {
+            const forecastResponse = await axios.get('/api/forecast', {
                 params: { paramLat: lat, paramLon: lon },
             });
             setWeatherData(TransformToWeatherResponse(weatherResponse.data));
