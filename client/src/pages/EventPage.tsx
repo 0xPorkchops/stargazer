@@ -64,8 +64,13 @@ export default function Events() {
             <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} />
             <div className="flex justify-center">
             <div className="events-container flex flex-col w-[90%]">
-                <button onClick={()=>{setRadius(10000)}}></button>
-            <h1 className="text-2xl font-bold mb-6 text-center">Nearby Events</h1>
+            <h1 className="text-2xl font-bold mb-2 text-center">Nearby Events</h1>
+            <input
+                className="justify-self-center bg-transparent border rounded mb-2"
+                type="number"
+                onChange={(e) => setRadius(Number(e.target.value))}
+                placeholder="Enter radius"
+            />
             {events.length > 0 ? (
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {events.map((event) => (
