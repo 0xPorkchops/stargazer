@@ -1,7 +1,7 @@
 
 import { ThemeStatus } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import "../components/Homepage.css"; // Import the CSS file
+import "../css/HomePage.css";
 
 function HomePage() {
   const navigate = useNavigate();
