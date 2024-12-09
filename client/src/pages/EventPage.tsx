@@ -156,6 +156,12 @@ export default function Events() {
                                         Location: {event.location.coordinates[0]?.toFixed(6)}{", "}
                                         {event.location.coordinates[1]?.toFixed(6)}
                                     </p>
+                                    <p className="text-sm text-gray-500">
+                                        Frequency: {event.frequency}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        Intensity : {event.intensity}
+                                    </p>
                                 </div>
                             ))}
                         </div>
