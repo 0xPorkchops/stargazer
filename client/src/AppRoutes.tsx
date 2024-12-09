@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import Home from './pages/HomePage';
+import Home from './pages/WelcomePage';
 import Weather from './pages/WeatherPage';
 import StarMap from './pages/StarPage';
 import Aurora from './pages/AuroraPage';

@@ -8,10 +8,10 @@ import { ThemeStatus } from './lib/utils';
 
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const isHomepage = location.pathname === '/';
+  const isWelcomePage = location.pathname === '/';
   return (
     <>
-        {!isHomepage && (
+        {!isWelcomePage && (
         <header className="sticky top-0 z-10 bg-card">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row justify-between items-center py-4">

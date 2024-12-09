@@ -170,9 +170,9 @@ function StarMap() {
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
-                    <FormControl>
+                    <FormControl className="text-muted-foreground">
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a constellation" />
+                        <SelectValue className="text-muted-foreground" placeholder="Select a constellation" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -199,7 +199,7 @@ function StarMap() {
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
-                    <FormControl>
+                    <FormControl className="text-muted-foreground">
                       <SelectTrigger>
                         <SelectValue placeholder="Select a map style" />
                       </SelectTrigger>
