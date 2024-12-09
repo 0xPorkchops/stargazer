@@ -9,6 +9,7 @@ import { dbConnection } from './data_access_module.js';
 import { EventsDatabase, eventsDatabase } from './events_access_module.js';
 
 import sgMail from '@sendgrid/mail';
+import { AstronomicalEvent } from './utils/events.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -48,7 +49,7 @@ interface UserSettings {
   theme: 'light' | 'dark' | 'system';
   notifyEmail: boolean;
   notifyPhone: boolean;
-  notifyFrequency : '1h' | '6h' | '12h' | '24h';
+  notifyFrequency : '1h' | '6h' | '12h' | '24h' | '48h';
   email: string;
   phone: string;
   phoneProvider: string;
@@ -134,8 +135,8 @@ function sendText(phone: string, phoneProvider: string, message: string): boolea
   return sendEmail(SMSGatewayEmail, '', message);
 }
 
-function isItTimeToNotify(eventTime: number, notifyLeadTime: '1h' | '6h' | '12h' | '24h'): boolean {
-  function getNotifyTimeInMs(frequency: '1h' | '6h' | '12h' | '24h'): number {
+function isItTimeToNotify(eventTime: number, notifyLeadTime: '1h' | '6h' | '12h' | '24h' | '48h'): boolean {
+  function getNotifyTimeInMs(frequency: '1h' | '6h' | '12h' | '24h' | '48h'): number {
     switch (frequency) {
       case '1h':
         return 1 * 60 * 60 * 1000;
@@ -145,8 +146,10 @@ function isItTimeToNotify(eventTime: number, notifyLeadTime: '1h' | '6h' | '12h'
         return 12 * 60 * 60 * 1000;
       case '24h':
         return 24 * 60 * 60 * 1000;
+      case '48h':
+        return 2 * 24 * 60 * 60 * 1000;
       default:
-        return 24 * 60 * 60 * 1000;
+        return 2 * 24 * 60 * 60 * 1000;
     }
   }
 
@@ -247,6 +250,83 @@ async function notifyUser(userId: string, name: string, events: Event[]) {
     response.textSent = textSent;
   }
   return response;
+}
+
+async function notifyUserWithNearbyEvents(userId: string) {
+  if (!userId) {
+    throw new Error('Missing required parameters: { userId: string }');
+  }
+
+  const db = dbConnection.getDb();
+  const usersCollection: Collection<User> = db.collection('users');
+  const user = await usersCollection.findOne({ clerkUserId: userId });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  if (!user.settings) {
+    throw new Error('User settings not complete');
+  }
+
+  // Use user's saved location or default to a fallback location
+  const latitude = user.settings.latitude || 40.7128;
+  const longitude = user.settings.longitude || -74.0060;
+  const radius = 500; // Default radius in kilometers
+
+  try {
+    // Fetch nearby events using the /api/events/near endpoint logic
+    const nearbyEventsResponse = await fetch(`http://localhost:${port}/api/events/near?lat=${latitude}&lon=${longitude}&rad=${radius}`);
+    const nearbyEvents: AstronomicalEvent[] = await nearbyEventsResponse.json();
+
+    // Filter events that are upcoming based on the user's notification frequency
+    const upcomingEvents = nearbyEvents.filter(event => 
+      isItTimeToNotify(new Date(event.startDate).getTime(), user.settings?.notifyFrequency || '48h')
+    );
+
+    // If no upcoming nearby events, return early
+    if (upcomingEvents.length === 0) {
+      return { message: 'No nearby upcoming events found' };
+    }
+
+    // Notification settings
+    const name = user.settings.name;
+    const notifyEmail = user.settings.notifyEmail;
+    const notifyPhone = user.settings.notifyPhone;
+    const email = user.settings.email;
+    const phone = user.settings.phone;
+    const phoneProvider = user.settings.phoneProvider;
+
+    // Generate notification message for nearby events
+    let message = `Hello ${name},\n\nHere are upcoming celestial events near you (within ${radius} km):\n\n`;
+    upcomingEvents.forEach(event => {
+      message += ` • ${event.name || 'Unnamed Event'}: `;
+      message += `${event.description || 'No description available'}\n`;
+      message += `   Happening ${new Date(event.startDate).toLocaleString()} at: `;
+      message += `${event.location.coordinates.lat}, ${event.location.coordinates.lon}\n\n`;
+    });
+
+    const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean; } = {};
+
+    // Send email notification
+    if (notifyEmail) {
+      const emailSent = sendEmail(email, "Nearby Celestial Events", message);
+      response.email = email;
+      response.emailSent = emailSent;
+    }
+
+    // Send SMS notification
+    if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
+      const textSent = sendText(phone, phoneProvider, message);
+      response.phone = `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`;
+      response.textSent = textSent;
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Error in notifyUserWithNearbyEvents:', error);
+    throw error;
+  }
 }
 
 async function startServer() {
@@ -614,12 +694,12 @@ async function startServer() {
     app.get('/api/events/near', async (req, res) => {
       try {
         // Retrieve the location (latitude, longitude, and radius) from query parameters
-        let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '500' } = req.query;
+        let { lat = '42.3952875', lon = '-72.5310819', rad = '500' } = req.query;
 
         // Parse the query parameters as floats
-        const latitude = parseFloat(paramLat as string);
-        const longitude = parseFloat(paramLon as string);
-        const radius = parseFloat(paramRadius as string);
+        const latitude = parseFloat(lat as string);
+        const longitude = parseFloat(lon as string);
+        const radius = parseFloat(rad as string);
 
         // Validate if the parameters are valid numbers
         if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {
@@ -695,6 +775,72 @@ async function startServer() {
         res.status(500).json({ error: 'An error occurred while populating events.' });
       }
     }); 
+
+    app.get('/api/admin/user/notify/v2', async (req, res) => {
+      // Optional: Uncomment and modify IP whitelist if needed
+      /*
+      const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1'];
+      if (!whitelistIPs.includes(req.ip || 'FalseIP')) {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }
+      */
+    
+      // Optional: specify a singular user to notify
+      const userId = req.query.userId as string | undefined;
+    
+      try {
+        // Get users, optionally filtered by a specific user
+        const db = dbConnection.getDb();
+        const usersCollection: Collection<User> = db.collection('users');
+        
+        let users: { clerkUserId: string; settings?: UserSettings }[];
+        if (userId) {
+          const user = await usersCollection.findOne({ clerkUserId: userId });
+          if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+          }
+          users = [user];
+        } else {
+          // Get all users with complete settings
+          users = await usersCollection.find(
+            { 'settings.latitude': { $exists: true }, 'settings.longitude': { $exists: true } },
+            { projection: { clerkUserId: 1, settings: 1 } }
+          ).toArray();
+        }
+    
+        // Notify users with nearby events
+        const notifications = await Promise.all(users.map(async (user) => {
+          if (!user.settings) return null;
+          
+          try {
+            return {
+              userId: user.clerkUserId,
+              name: user.settings.name || 'Unknown User',
+              ...(await notifyUserWithNearbyEvents(user.clerkUserId))
+            };
+          } catch (error) {
+            console.error(`Error notifying user ${user.clerkUserId}:`, error);
+            return {
+              userId: user.clerkUserId,
+              name: user.settings.name || 'Unknown User',
+              error: error instanceof Error ? error.message : 'Unknown error'
+            };
+          }
+        }));
+    
+        // Filter out null results
+        const filteredNotifications = notifications.filter(notification => notification !== null);
+    
+        res.status(200).json({ 
+          message: 'Notifications sent', 
+          notifications: filteredNotifications 
+        });
+      } catch (error) {
+        res.status(500).json({ 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
+    });
   
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
