@@ -1,5 +1,6 @@
 import { Settings } from '@/components/Settings'
 import { Button } from '@/components/ui/button'
+import { Toaster } from '@/components/ui/toaster';
 import { SignedIn, SignedOut, SignInButton, UserButton} from '@clerk/clerk-react'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Link, useLocation } from "react-router-dom";
@@ -21,7 +22,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             {/* Navigation Tabs */}
             <nav className="flex flex-wrap justify-center sm:justify-end space-x-3 sm:space-x-5">
                 <Button asChild variant="ghost" className=""><Link to="/events" className="px-3 py-2 rounded-md text-base font-medium">Events</Link></Button>
-                <Button asChild variant="ghost" className=""><Link to="/starmap" className="px-3 py-2 rounded-md text-base font-medium">Star</Link></Button>
+                <Button asChild variant="ghost" className=""><Link to="/starmap" className="px-3 py-2 rounded-md text-base font-medium">Star Map</Link></Button>
                 <Button asChild variant="ghost" className=""><Link to="/aurora" className="px-3 py-2 rounded-md text-base font-medium">Aurora</Link></Button>
                 <Button asChild variant="ghost" className=""><Link to="/weather" className="px-3 py-2 rounded-md text-base font-medium">Weather</Link></Button>
             </nav>
@@ -29,7 +30,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             <div className="mt-4 sm:mt-0 flex items-center gap-2">
             <ModeToggle />
             <SignedOut>
-                <SignInButton>
+                <SignInButton forceRedirectUrl="/" signUpForceRedirectUrl="/">
                   <Button variant="default">
                     Sign Up
                   </Button>
@@ -47,6 +48,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <main>
             {children}
         </main>
+        <Toaster />
     </>
   )
 }

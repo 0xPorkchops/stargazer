@@ -1,12 +1,15 @@
 import express from 'express';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { requireAuth, getAuth } from '@clerk/express';
+import { requireAuth, getAuth, PhoneNumber } from '@clerk/express';
 import 'dotenv/config'; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
 import { EventsDatabase, eventsDatabase } from './events_access_module.js';
+
+import sgMail from '@sendgrid/mail';
+import { AstronomicalEvent } from './utils/events.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -43,10 +46,10 @@ interface UserSettings {
   name: string;
   latitude: number;
   longitude: number;
-  theme: 'dark' | 'light' | 'red';
+  theme: 'light' | 'dark' | 'system';
   notifyEmail: boolean;
   notifyPhone: boolean;
-  notifyFrequency : '1h' | '6h' | '12h' | '24h';
+  notifyFrequency : '1h' | '6h' | '12h' | '24h' | '48h';
   email: string;
   phone: string;
   phoneProvider: string;
@@ -62,6 +65,270 @@ interface Event {
   createdAt: Date;
 }
 
+function sendEmail(to: string, subject: string, text: string): boolean {
+  const mailAPIKey = process.env.SENDGRID_API_KEY || 'FalseMailAPIKey';
+  sgMail.setApiKey(mailAPIKey);
+
+  const msg = {
+    to,
+    from: process.env.SENDGRID_SENDER_EMAIL || 'FalseSenderEmail',
+    subject,
+    text,
+  };
+
+  sgMail
+    .send(msg)
+    .then((response: any) => {
+      console.log(response[0].statusCode);
+      console.log(response[0].headers);
+    })
+    .catch((error: unknown) => {
+      console.error(error);
+      return false;
+    });
+    return true;
+}
+
+function generateEventNotificationMessage(name: string, events: Event[]): string {
+  let message = `Hello ${name},\n\nHere are your upcoming celestial events:\n\n`;
+  events.forEach(event => {
+    message += ` • ${event.name || 'Unnamed Event'}: `;
+    message += `${event.description || 'No description available'}\n`;
+    message += `   Happening ${event.time.toLocaleString()} at: `;
+    message += `${event.latitude}, ${event.longitude}\n\n`;
+  });
+
+  return message;
+}
+
+const phoneProviderEmailSuffixMap: { [key: string]: string } = {
+  'AT&T': 'txt.att.net',
+  'Verizon': 'mypixmessages.com',
+  'T-Mobile': 'tmomail.net',
+  'Virgin Mobile': 'vmobl.com',
+  'Tracfone': 'mmst5.tracfone.com',
+  'Metro PCS': 'mymetropcs.com',
+  'Boost Mobile': 'myboostmobile.com',
+  'Cricket': 'sms.cricketwireless.net',
+  'Google Fi': 'msg.fi.google.com',
+  'U.S. Cellular': 'email.uscc.net',
+  'Ting': 'message.ting.com',
+  'Consumer Cellular': 'mailmymobile.net',
+  'C-Spire': 'cspire1.com',
+  'Page Plus': 'vtext.com'
+};
+
+function generateSMSGatewayEmail(phone: string, phoneProvider: string): string | null {
+  const phoneProviderEmailSuffix = phoneProviderEmailSuffixMap[phoneProvider];
+  if (!phoneProviderEmailSuffix) {
+    return null;
+  }
+
+  return `${phone}@${phoneProviderEmailSuffix}`;
+}
+
+function sendText(phone: string, phoneProvider: string, message: string): boolean {
+  const SMSGatewayEmail = generateSMSGatewayEmail(phone, phoneProvider)
+  if (!SMSGatewayEmail) {
+    return false;
+  }
+  return sendEmail(SMSGatewayEmail, '', message);
+}
+
+function isItTimeToNotify(eventTime: number, notifyLeadTime: '1h' | '6h' | '12h' | '24h' | '48h'): boolean {
+  function getNotifyTimeInMs(frequency: '1h' | '6h' | '12h' | '24h' | '48h'): number {
+    switch (frequency) {
+      case '1h':
+        return 1 * 60 * 60 * 1000;
+      case '6h':
+        return 6 * 60 * 60 * 1000;
+      case '12h':
+        return 12 * 60 * 60 * 1000;
+      case '24h':
+        return 24 * 60 * 60 * 1000;
+      case '48h':
+        return 2 * 24 * 60 * 60 * 1000;
+      default:
+        return 2 * 24 * 60 * 60 * 1000;
+    }
+  }
+
+  function truncateToHour(ms: number): number {
+    return Math.floor(ms / 3600) * 3600;
+  }
+
+  const currentTime = truncateToHour(Date.now());
+  return truncateToHour(eventTime) - truncateToHour(currentTime) <= truncateToHour(getNotifyTimeInMs(notifyLeadTime));
+}
+
+async function getUsersWithEvents(userId?: string): Promise<{ userId: string; name: string; events: Event[] }[]>{
+  try {
+    const db = dbConnection.getDb();
+    const usersCollection: Collection<User> = db.collection('users');
+
+    // If userId is provided, fetch events for that specific user
+    if (userId) {
+      const user = await usersCollection.findOne(
+        { clerkUserId: userId },
+        { projection: { events: 1, 'settings.name': 1 } }
+      );
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return [{
+        userId: user.clerkUserId,
+        name: user.settings?.name || 'Unknown Name',
+        events: user.events || []
+      }];
+    }
+
+    // If no userId, fetch all users with their events
+    const users = await usersCollection.find(
+      {},
+      { 
+        projection: { 
+          clerkUserId: 1, 
+          'settings.name': 1, 
+          events: 1 
+        } 
+      }
+    ).toArray();
+
+    // Filter for only users with events that are to be notified according to their notification lead time setting
+    const usersWithEvents = users.reduce((acc, user) => 
+      (user.events && user.events.length > 0)
+      ? [...acc, { userId: user.clerkUserId, name: user.settings?.name || 'Unknown Name', events: user.events.filter(event => isItTimeToNotify(event.time.getTime(), user.settings?.notifyFrequency || '24h')) }] 
+      : acc, 
+      [] as { userId: string; name: string; events: Event[] }[]
+    );
+
+    return usersWithEvents;
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : 'Unknown error');
+  }
+}
+
+async function notifyUser(userId: string, name: string, events: Event[]) {
+  if (!userId || !name || !events) {
+    throw new Error('Missing required parameters: { userId: string, name: string, events: Event[] }');
+  }
+
+  if (events.length === 0) {
+    return { message: 'No upcoming events found' };
+  }
+
+  const message = generateEventNotificationMessage(name, events);
+
+  const db = dbConnection.getDb();
+  const usersCollection: Collection<User> = db.collection('users');
+  const user = await usersCollection.findOne({ clerkUserId: userId });
+  if (!user) {
+    throw new Error('User not found');
+  }
+  if (!user.settings) {
+    throw new Error('User settings not complete');
+  }
+  const notifyEmail = user.settings.notifyEmail;
+  const notifyPhone = user.settings.notifyPhone;
+  const email = user.settings.email;
+  const phone = user.settings.phone;
+  const phoneProvider = user.settings.phoneProvider;
+
+  const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean;} = {};
+
+  if (notifyEmail) {
+    const emailSent = sendEmail(email, "Upcoming Celestial Events", message);
+    response.email = email;
+    response.emailSent = emailSent;
+  }
+
+  if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
+    const textSent = sendText(phone, phoneProvider, message);
+    response.phone = `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`;
+    response.textSent = textSent;
+  }
+  return response;
+}
+
+async function notifyUserWithNearbyEvents(userId: string) {
+  if (!userId) {
+    throw new Error('Missing required parameters: { userId: string }');
+  }
+
+  const db = dbConnection.getDb();
+  const usersCollection: Collection<User> = db.collection('users');
+  const user = await usersCollection.findOne({ clerkUserId: userId });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  if (!user.settings) {
+    throw new Error('User settings not complete');
+  }
+
+  // Use user's saved location or default to a fallback location
+  const latitude = user.settings.latitude || 40.7128;
+  const longitude = user.settings.longitude || -74.0060;
+  const radius = 500; // Default radius in kilometers
+
+  try {
+    // Fetch nearby events using the /api/events/near endpoint logic
+    const nearbyEventsResponse = await fetch(`https://stargazer320.vercel.app/api/events/near?lat=${latitude}&lon=${longitude}&rad=${radius}`);
+    const nearbyEvents: AstronomicalEvent[] = await nearbyEventsResponse.json();
+
+    // Filter events that are upcoming based on the user's notification frequency
+    const upcomingEvents = nearbyEvents.filter(event => 
+      isItTimeToNotify(new Date(event.startDate).getTime(), user.settings?.notifyFrequency || '48h')
+    );
+
+    // If no upcoming nearby events, return early
+    if (upcomingEvents.length === 0) {
+      return { message: 'No nearby upcoming events found' };
+    }
+
+    // Notification settings
+    const name = user.settings.name;
+    const notifyEmail = user.settings.notifyEmail;
+    const notifyPhone = user.settings.notifyPhone;
+    const email = user.settings.email;
+    const phone = user.settings.phone;
+    const phoneProvider = user.settings.phoneProvider;
+
+    // Generate notification message for nearby events
+    let message = `Hello ${name},\n\nHere are upcoming celestial events near you (within ${radius} km):\n\n`;
+    upcomingEvents.forEach(event => {
+      message += ` • ${event.name || 'Unnamed Event'}: `;
+      message += `${event.description || 'No description available'}\n`;
+      message += `   Happening ${new Date(event.startDate).toLocaleString()} at: `;
+      message += `${event.location.coordinates.lat}, ${event.location.coordinates.lon}\n\n`;
+    });
+
+    const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean; } = {};
+
+    // Send email notification
+    if (notifyEmail) {
+      const emailSent = sendEmail(email, "Nearby Celestial Events", message);
+      response.email = email;
+      response.emailSent = emailSent;
+    }
+
+    // Send SMS notification
+    if (notifyPhone && phoneProviderEmailSuffixMap[phoneProvider]) {
+      const textSent = sendText(phone, phoneProvider, message);
+      response.phone = `${phone}@${phoneProviderEmailSuffixMap[phoneProvider]}`;
+      response.textSent = textSent;
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Error in notifyUserWithNearbyEvents:', error);
+    throw error;
+  }
+}
+
 async function startServer() {
   try {
     await dbConnection.connect();
@@ -69,12 +336,15 @@ async function startServer() {
     // Serve static files from the React app
     app.use(express.static(path.join(__dirname, '..', '..', 'client', 'build')));
 
+    // API routes
+
+    // Get Clerk ID route, for development purposes
     app.get('/api/id', requireAuth({ signInUrl: '/sign-in' }), async (req, res) => {
       const { userId } = getAuth(req);
       res.send({ message: userId});
     });
 
-    // API routes
+    // Route to get user data from client-side
     app.route('/api/user')
     .get(requireAuth(), async (req, res) => {
 
@@ -91,6 +361,7 @@ async function startServer() {
         const user = await usersCollection.findOne({clerkUserId: userId});
 
         if (user) { // user exists, return user
+          console.log("user exists")
           return res.status(200).json(user);
         }
 
@@ -123,7 +394,49 @@ async function startServer() {
       }
     })
     .post(requireAuth(), async (req, res) => {
-      console.log("Place holder for post at /api/user")
+      const { userId } = getAuth(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      try {
+        //console.log(userId);
+
+        const db = dbConnection.getDb();
+        const usersCollection: Collection<User> = db.collection('users');
+        const user = await usersCollection.findOne({ clerkUserId: userId });
+
+        if (user) { // user exists, return user
+          return res.status(200).json(user);
+        }
+
+        const { _firstname, _lastname, _username, _email, _last_location } = req.body;
+
+        if (!_firstname || !_lastname || !_username || !_email) {
+          return res.status(400).json({ error: "Missing user fields" });
+        }
+
+        const newuser = {
+          clerkUserId: userId,
+          _id: userId,
+          _firstname,
+          _lastname,
+          _username,
+          _email,
+          _last_location: _last_location
+            ? { ..._last_location, time: new Date() }
+            : undefined,
+        };
+
+        const result = await usersCollection.insertOne(newuser);
+        if (result.acknowledged) {
+          res.status(201).json(newuser);
+        } else {
+          res.status(500).json({ error: "Failed to create user" });
+        }
+      } catch (error) {
+        res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      }
     })
     .put(requireAuth(), async (req, res) => {
       console.log("Place holder for put at /api/user");
@@ -143,15 +456,15 @@ async function startServer() {
         const user = await usersCollection.findOne({ clerkUserId: userId });
 
         const defaultSettings: UserSettings = {
-          name: "ABC" + ' ' + "XYZ",
+          name: "John" + ' ' + "Doe",
           latitude: 40.7128,
           longitude: -74.0060,
           theme: 'light',
           notifyEmail: true,
           notifyPhone: true,
           notifyFrequency: '24h',
-          email: " .  ",
-          phone: '',
+          email: "johndoe@gmail.com",
+          phone: '4135555555',
           phoneProvider: 'AT&T',
           lastUpdated: new Date()
         };
@@ -167,6 +480,7 @@ async function startServer() {
 
         return res.json(user.settings)
       } catch (error) {
+        console.log("error with settings")
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
     })
@@ -199,7 +513,8 @@ async function startServer() {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
     });
-
+    
+    // Old route to get a user's events from client-side
     app.route('/api/user/events')
       .get(requireAuth(), async (req, res) => {
         const { userId } = getAuth(req);
@@ -294,63 +609,47 @@ async function startServer() {
         }
       });
 
+    // Old route to get all users with events or a specific user's events
     app.route('/api/admin/user/events')
     .get(async (req, res) => {
       try {
-        const db = dbConnection.getDb();
-        const usersCollection: Collection<User> = db.collection('users');
-        
-        // Check if a specific user ID is provided
-        const { userId } = req.query;
-  
-        // If userId is provided, fetch events for that specific user
-        if (userId) {
-          const user = await usersCollection.findOne(
-            { clerkUserId: userId as string },
-            { projection: { events: 1, _firstname: 1, _lastname: 1 } }
-          );
-  
-          if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-          }
-  
-          return res.status(200).json({
-            userId: user.clerkUserId,
-            name: `${user._firstname} ${user._lastname}`,
-            events: user.events || []
-          });
-        }
-  
-        // If no userId, fetch all users with their events
-        const users = await usersCollection.find(
-          {},
-          { 
-            projection: { 
-              clerkUserId: 1, 
-              _firstname: 1, 
-              _lastname: 1, 
-              events: 1 
-            } 
-          }
-        ).toArray();
-  
-        // Transform the result to include only users with events
-        const usersWithEvents = users
-          .filter(user => user.events && user.events.length > 0)
-          .map(user => ({
-            userId: user.clerkUserId,
-            name: `${user._firstname} ${user._lastname}`,
-            events: user.events
-          }));
-  
-        res.status(200).json(usersWithEvents);
+        const userId = req.query.userId as string | undefined;
+        const eventsData = await getUsersWithEvents(userId);
+        res.status(200).json(eventsData);
       } catch (error) {
         res.status(500).json({ 
           error: error instanceof Error ? error.message : 'Unknown error' 
-        });
+      });
       }
     });
 
+    // Old route to notify users with their upcoming events
+    app.get('/api/admin/user/notify', async (req, res) => {
+      // const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1']; // cron-job.org IPs + localhost IP
+     
+      /*console.log(req.ip);
+      if (!whitelistIPs.includes(req.ip || 'FalseIP')) {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }*/
+
+      // Optional: specify a singular user to notify
+      const userId = req.query.userId as string | undefined;
+
+      try {
+        const usersWithEvents = await getUsersWithEvents(userId);
+
+        const notifications = await Promise.all(usersWithEvents.map(async (user) => {
+          const { userId, name, events } = user;
+          return notifyUser(userId, name, events);
+        }));
+
+        res.status(200).json({ message: 'Notifications sent', notifications });
+      } catch (error) {
+        res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      }
+    });
+
+    // Route to get weather data
     app.get('/api/weather', async (req, res) => {
       const { paramLat = '42.3952875', paramLon = '-72.5310819' }:{paramLat?: string, paramLon?: string} = req.query;
       const apiKey = process.env.OPENWEATHER_KEY;
@@ -380,6 +679,7 @@ async function startServer() {
       }
     });
 
+    // Route to get forecast data
     app.get('/api/forecast', async (req, res) => {
       const { paramLat = '42.3952875', paramLon = '-72.5310819' }:{paramLat?: string, paramLon?: string} = req.query;
       const apiKey = process.env.OPENWEATHER_KEY;
@@ -444,12 +744,12 @@ async function startServer() {
     app.get('/api/events/near', async (req, res) => {
       try {
         // Retrieve the location (latitude, longitude, and radius) from query parameters
-        let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '500' } = req.query;
+        let { lat = '42.3952875', lon = '-72.5310819', rad = '500' } = req.query;
 
         // Parse the query parameters as floats
-        const latitude = parseFloat(paramLat as string);
-        const longitude = parseFloat(paramLon as string);
-        const radius = parseFloat(paramRadius as string);
+        const latitude = parseFloat(lat as string);
+        const longitude = parseFloat(lon as string);
+        const radius = parseFloat(rad as string);
 
         // Validate if the parameters are valid numbers
         if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {
@@ -525,6 +825,73 @@ async function startServer() {
         res.status(500).json({ error: 'An error occurred while populating events.' });
       }
     }); 
+
+    // Route to notify users with nearby upcoming events
+    app.post('/api/notify', async (req, res) => {
+      // Optional: Uncomment and modify IP whitelist if needed
+      /*
+      const whitelistIPs = ['116.203.134.67', '116.203.129.16', '23.88.105.37', '128.140.8.200', '::1'];
+      if (!whitelistIPs.includes(req.ip || 'FalseIP')) {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }
+      */
+    
+      // Optional: specify a singular user to notify
+      const userId = req.query.userId as string | undefined;
+    
+      try {
+        // Get users, optionally filtered by a specific user
+        const db = dbConnection.getDb();
+        const usersCollection: Collection<User> = db.collection('users');
+        
+        let users: { clerkUserId: string; settings?: UserSettings }[];
+        if (userId) {
+          const user = await usersCollection.findOne({ clerkUserId: userId });
+          if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+          }
+          users = [user];
+        } else {
+          // Get all users with complete settings
+          users = await usersCollection.find(
+            { 'settings.latitude': { $exists: true }, 'settings.longitude': { $exists: true } },
+            { projection: { clerkUserId: 1, settings: 1 } }
+          ).toArray();
+        }
+    
+        // Notify users with nearby events
+        const notifications = await Promise.all(users.map(async (user) => {
+          if (!user.settings) return null;
+          
+          try {
+            return {
+              userId: user.clerkUserId,
+              name: user.settings.name || 'Unknown User',
+              ...(await notifyUserWithNearbyEvents(user.clerkUserId))
+            };
+          } catch (error) {
+            console.error(`Error notifying user ${user.clerkUserId}:`, error);
+            return {
+              userId: user.clerkUserId,
+              name: user.settings.name || 'Unknown User',
+              error: error instanceof Error ? error.message : 'Unknown error'
+            };
+          }
+        }));
+    
+        // Filter out null results
+        const filteredNotifications = notifications.filter(notification => notification !== null);
+    
+        res.status(200).json({ 
+          message: 'Notifications sent', 
+          notifications: filteredNotifications 
+        });
+      } catch (error) {
+        res.status(500).json({ 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
+    });
   
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
@@ -534,5 +901,6 @@ async function startServer() {
     console.error('Failed to start server:', error);
   } 
 }
+
 
 startServer();

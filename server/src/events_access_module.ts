@@ -96,7 +96,7 @@ export class EventsDatabase {
 
       // Delete events where the end date is in the past
       await this.collection.deleteMany({ 
-        endDate: { $lt: currentDate.toISOString() } 
+        endDate: { $lt: currentDate } 
       });
 
       console.log('Expired events removed successfully');
@@ -126,7 +126,7 @@ export class EventsDatabase {
       const events = await this.collection.find({
         'location.coordinates': {
           $geoWithin: {
-            $centerSphere: [[longitude, latitude], radiusInKm / 6371] // 6371 is Earth's radius in km
+            $centerSphere: [[latitude, longitude], radiusInKm / 6371] // 6371 is Earth's radius in km
           }
         }
       }).toArray();
