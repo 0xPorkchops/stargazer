@@ -181,8 +181,10 @@ export function Settings() {
                   <Input 
                     type="number" 
                     placeholder="-90 to 90" 
+                    min={-90}
+                    max={90}
                     {...field}
-                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                    onChange={e => field.onChange(e.target.value)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -200,8 +202,10 @@ export function Settings() {
                   <Input 
                     type="number" 
                     placeholder="-180 to 180" 
+                    min={-180}
+                    max={180}
                     {...field}
-                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                    onChange={e => field.onChange(e.target.value)}
                   />
                 </FormControl>
                 <FormMessage />

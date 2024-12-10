@@ -241,4 +241,3 @@ function StarMap() {
 export default StarMap;
 
 
-
