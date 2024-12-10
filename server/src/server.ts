@@ -708,19 +708,15 @@ async function startServer() {
         res.status(500).json({ error: 'Failed to fetch forecast data' });
       }
     });
-    /* 
-    The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
-    Vercel routes static/client-side files instead of Express, but this can be changed in vercel.json if needed.
-    To let Express handle routing on Vercel, the only route in vercel.json should be: {"src": "/(.*)","dest": "server/src/server.ts"}
-    This would be inefficient as it would spin up an edge function for this entire Express app for every cold request.
-    So let's stick to using Express for the API and let Vercel handle the client-side routing.
-    */
 
-    /*
-    app.get('*', (req, res) => {
+    // Catch-all route to serve the React app other than API routes
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api/')) {
+      return next();
+      }
       res.sendFile(path.join(__dirname, '..', '..', 'client', 'build', 'index.html'));
     });
-    */
+
    // Route to get all events
     app.get('/api/events', async (req, res) => {
       try {
