@@ -117,8 +117,8 @@ export class EventsDatabase {
 
   // Find events near a specific location within a given radius
   public async findEventsNearLocation(
-    latitude: number, 
     longitude: number, 
+    latitude: number, 
     radiusInKm: number
   ): Promise<AstronomicalEvent[]> {
     try {
@@ -126,7 +126,7 @@ export class EventsDatabase {
       const events = await this.collection.find({
         'location.coordinates': {
           $geoWithin: {
-            $centerSphere: [[latitude, longitude], radiusInKm / 6371] // 6371 is Earth's radius in km
+            $centerSphere: [[longitude, latitude], radiusInKm / 6378.1] // 6378.1 is Earth's radius in km, this for converting km to radians
           }
         }
       }).toArray();

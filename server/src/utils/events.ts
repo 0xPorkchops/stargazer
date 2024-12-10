@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface Location {
   type: string;
-  coordinates: number[];
+  coordinates: [number, number]; // [longitude, latitude]
 }
 
 export interface AstronomicalEvent {
@@ -21,32 +21,32 @@ export interface AstronomicalEvent {
 
 const eventCoordinateRanges = {
   'Meteor Shower': {
-    latRange: [-90, 90],
     lonRange: [-180, 180],
+    latRange: [-90, 90],
   },
   'Solar Eclipse': {
-    latRange: [-60, 60],
     lonRange: [-180, 180],
+    latRange: [-60, 60],
   },
   'Lunar Eclipse': {
-    latRange: [-90, 90],
     lonRange: [-180, 180],
+    latRange: [-90, 90],
   },
   'Planetary Alignment': {
-    latRange: [-30, 30],
     lonRange: [-180, 180],
+    latRange: [-30, 30],
   },
   'Supermoon': {
-    latRange: [-90, 90],
     lonRange: [-180, 180],
+    latRange: [-90, 90],
   },
   'Comet Sighting': {
-    latRange: [30, 90],
     lonRange: [-180, 180],
+    latRange: [30, 90],
   },
   'Asteroid Flyby': {
-    latRange: [-90, -30],
     lonRange: [-180, 180],
+    latRange: [-90, -30],
   },
 };
 
@@ -163,15 +163,15 @@ const randomDate = (startDate = new Date(), daysOffsetMin = 1, daysOffsetMax = 7
   
 
 export const generateRandomCoord = (
-  coordinateRange: { latRange: number[]; lonRange: number[] }
-): number[] => {
+  coordinateRange: { lonRange: number[], latRange: number[]; }
+): [number, number] => {
+  const lonRangeStart = coordinateRange.lonRange[0],
+  lonRangeEnd = coordinateRange.lonRange[1];
   const latRangeStart = coordinateRange.latRange[0],
     latRangeEnd = coordinateRange.latRange[1];
-  const lonRangeStart = coordinateRange.lonRange[0],
-    lonRangeEnd = coordinateRange.lonRange[1];
 
-  const latDifference = latRangeEnd - latRangeStart;
   const lonDifference = lonRangeEnd - lonRangeStart;
+  const latDifference = latRangeEnd - latRangeStart;
 
   return [
     lonRangeStart + Math.random() * lonDifference, 
@@ -232,3 +232,17 @@ export const getDailyEvents = (): AstronomicalEvent[] => {
   }
   return events;
 };
+
+export const parseCoords = (coordinates: [string, string] | [number, number]): [number, number] => {
+  if (typeof coordinates[0] === 'string' && typeof coordinates[1] === 'string') {
+    coordinates = [parseFloat(coordinates[0]), parseFloat(coordinates[1])];
+    if (isNaN(coordinates[0]) || isNaN(coordinates[1])) {
+      throw new Error('Invalid string-type numbers passed to parseCoords');
+    }
+  }
+  coordinates = coordinates as [number, number];
+  if (coordinates[0] < -180 || coordinates[0] > 180 || coordinates[1] < -90 || coordinates[1] > 90) {
+    throw new Error('Out-of-range coordinates passed to parseCoords');
+  }
+  return coordinates;
+}

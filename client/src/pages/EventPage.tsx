@@ -23,7 +23,7 @@ export default function Events() {
 
         const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
             const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
-            const earthRadius = 6371; // Radius of the Earth in kilometers
+            const earthRadius = 6378.1; // Radius of the Earth in kilometers
 
             const dLat = toRadians(lat2 - lat1);
             const dLon = toRadians(lon2 - lon1);
@@ -65,7 +65,7 @@ export default function Events() {
     const fetchEvents = async (lat: number, lon: number, radius: number) => {
         try {
             const eventResponse = await axios.get('http://localhost:3000/api/events/near', {
-                params: { paramLat: lat, paramLon: lon, paramRadius: radius },
+                params: { paramLon: lon, paramLat: lat, paramRadius: radius },
             });
             console.log(eventResponse.data);
             setEvents(eventResponse.data);

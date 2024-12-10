@@ -743,16 +743,16 @@ async function startServer() {
     // Route to get events near a specific location
     app.get('/api/events/near', async (req, res) => {
       try {
-        // Retrieve the location (latitude, longitude, and radius) from query parameters
-        let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '500' } = req.query;
+        // Retrieve the location (longitude, latitude, and radius) from query parameters
+        let { paramLon = '-72.5310819', paramLat = '42.3952875', paramRadius = '500' } = req.query;
 
         // Parse the query parameters as floats
-        const latitude = parseFloat(paramLat as string);
         const longitude = parseFloat(paramLon as string);
+        const latitude = parseFloat(paramLat as string);
         const radius = parseFloat(paramRadius as string);
 
         // Validate if the parameters are valid numbers
-        if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {
+        if (isNaN(longitude) || isNaN(latitude) || isNaN(radius)) {
           return res.status(400).json({
             error: 'Invalid location or radius values. Please provide valid numbers.',
           });
@@ -761,8 +761,8 @@ async function startServer() {
         // Find nearby events
         const eventdb = await eventsDatabase
         const nearbyEvents = await eventdb.findEventsNearLocation(
-          latitude, 
           longitude, 
+          latitude, 
           radius
         );
 
@@ -854,7 +854,7 @@ async function startServer() {
         } else {
           // Get all users with complete settings
           users = await usersCollection.find(
-            { 'settings.latitude': { $exists: true }, 'settings.longitude': { $exists: true } },
+            { 'settings.longitude': { $exists: true }, 'settings.latitude': { $exists: true } },
             { projection: { clerkUserId: 1, settings: 1 } }
           ).toArray();
         }
