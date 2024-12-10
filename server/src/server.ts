@@ -6,7 +6,7 @@ import 'dotenv/config'; // To read CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
 import cors from "cors";
 import { Collection } from 'mongodb';
 import { dbConnection } from './data_access_module.js';
-import { EventsDatabase, eventsDatabase } from './events_access_module.js';
+import { eventsDatabase } from './events_access_module.js';
 
 import sgMail from '@sendgrid/mail';
 import { AstronomicalEvent } from './utils/events.js';
@@ -303,7 +303,7 @@ async function notifyUserWithNearbyEvents(userId: string) {
       message += ` • ${event.name || 'Unnamed Event'}: `;
       message += `${event.description || 'No description available'}\n`;
       message += `   Happening ${new Date(event.startDate).toLocaleString()} at: `;
-      message += `${event.location.coordinates[0]}, ${event.location.coordinates[1]}\n\n`;
+      message += `${event.location.coordinates[1]}, ${event.location.coordinates[0]}\n\n`;
     });
 
     const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean; } = {};
@@ -361,6 +361,7 @@ async function startServer() {
         const user = await usersCollection.findOne({clerkUserId: userId});
 
         if (user) { // user exists, return user
+          console.log("user exists")
           return res.status(200).json(user);
         }
 
@@ -393,7 +394,49 @@ async function startServer() {
       }
     })
     .post(requireAuth(), async (req, res) => {
-      console.log("Place holder for post at /api/user")
+      const { userId } = getAuth(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      try {
+        //console.log(userId);
+
+        const db = dbConnection.getDb();
+        const usersCollection: Collection<User> = db.collection('users');
+        const user = await usersCollection.findOne({ clerkUserId: userId });
+
+        if (user) { // user exists, return user
+          return res.status(200).json(user);
+        }
+
+        const { _firstname, _lastname, _username, _email, _last_location } = req.body;
+
+        if (!_firstname || !_lastname || !_username || !_email) {
+          return res.status(400).json({ error: "Missing user fields" });
+        }
+
+        const newuser = {
+          clerkUserId: userId,
+          _id: userId,
+          _firstname,
+          _lastname,
+          _username,
+          _email,
+          _last_location: _last_location
+            ? { ..._last_location, time: new Date() }
+            : undefined,
+        };
+
+        const result = await usersCollection.insertOne(newuser);
+        if (result.acknowledged) {
+          res.status(201).json(newuser);
+        } else {
+          res.status(500).json({ error: "Failed to create user" });
+        }
+      } catch (error) {
+        res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      }
     })
     .put(requireAuth(), async (req, res) => {
       console.log("Place holder for put at /api/user");
@@ -437,6 +480,7 @@ async function startServer() {
 
         return res.json(user.settings)
       } catch (error) {
+        console.log("error with settings")
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
       }
     })
@@ -700,12 +744,12 @@ async function startServer() {
     app.get('/api/events/near', async (req, res) => {
       try {
         // Retrieve the location (latitude, longitude, and radius) from query parameters
-        let { lat = '42.3952875', lon = '-72.5310819', rad = '500' } = req.query;
+        let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '500' } = req.query;
 
         // Parse the query parameters as floats
-        const latitude = parseFloat(lat as string);
-        const longitude = parseFloat(lon as string);
-        const radius = parseFloat(rad as string);
+        const latitude = parseFloat(paramLat as string);
+        const longitude = parseFloat(paramLon as string);
+        const radius = parseFloat(paramRadius as string);
 
         // Validate if the parameters are valid numbers
         if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {

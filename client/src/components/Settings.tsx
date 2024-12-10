@@ -16,7 +16,6 @@ import { useToast } from "@/hooks/use-toast"
 const phoneProviders = ["Verizon", "T-Mobile", "AT&T"] as const
 const themes = ["system", "light", "dark"] as const
 
-// Mock functions
 const getUserSettings = async () => {
   const response = await fetch('/api/settings', {
     method : "GET",
@@ -38,6 +37,7 @@ const getUserSettings = async () => {
   //   phoneProvider: "AT&T" as const,
   // }
 }
+
 
 const setUserSettings = async (values: FormValues) => {
   const response = await fetch('/api/settings', {

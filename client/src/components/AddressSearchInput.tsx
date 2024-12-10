@@ -3,9 +3,10 @@ import { GeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
 
 interface AddressAutoCompleteInputProps {
     onLocationSelect: (location: { lat: number; lon: number }) => void;
+    className?: string
 }
 
-export default function AddressAutoCompleteInput({ onLocationSelect }: AddressAutoCompleteInputProps) {
+export default function AddressAutoCompleteInput({ onLocationSelect, className }: AddressAutoCompleteInputProps) {
     const autocompleteInitialized = useRef(false);
     const autocompleteRef = useRef<GeocoderAutocomplete | null>(null); // Store autocomplete instance
 
@@ -33,6 +34,6 @@ export default function AddressAutoCompleteInput({ onLocationSelect }: AddressAu
             autocompleteInitialized.current = true;
         }
     }, [onLocationSelect]); // Only rerun if onLocationSelect changes
-
-    return <div id="autocomplete" className="autocomplete-container flex justify-center w-[100%] md:w-[45%] justify-self-center my-8"></div>
+    
+    return <div id="autocomplete" className={`autocomplete-container ${className}`} />;
 }

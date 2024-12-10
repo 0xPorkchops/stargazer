@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
+
 interface Location {
   type: string;
   coordinates: number[];
@@ -173,8 +174,8 @@ export const generateRandomCoord = (
   const lonDifference = lonRangeEnd - lonRangeStart;
 
   return [
-    latRangeStart + Math.random() * latDifference,
-    lonRangeStart + Math.random() * lonDifference,
+    lonRangeStart + Math.random() * lonDifference, 
+    latRangeStart + Math.random() * latDifference
   ];
 };
 

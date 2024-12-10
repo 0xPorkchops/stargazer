@@ -18,10 +18,10 @@ function WeatherDisplay() {
     // Fetch weather data based on the provided latitude and longitude
     const fetchWeather = async (lat: number, lon: number) => {
         try {
-            const weatherResponse = await axios.get('/api/weather', {
+            const weatherResponse = await axios.get('http://localhost:3000/api/weather', {
                 params: { paramLat: lat, paramLon: lon },
             });
-            const forecastResponse = await axios.get('/api/forecast', {
+            const forecastResponse = await axios.get('http://localhost:3000/api/forecast', {
                 params: { paramLat: lat, paramLon: lon },
             });
             setWeatherData(TransformToWeatherResponse(weatherResponse.data));
@@ -62,7 +62,7 @@ function WeatherDisplay() {
 
     return (
         <>
-            <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} />
+            <AddressAutoCompleteInput onLocationSelect={setSelectedLocation} className="flex justify-center w-[100%] md:w-[45%] justify-self-center my-8"/>
             <div className="flex flex-col items-center">
                 <p className="mt-8">Today</p>
                 <p className="text-4xl mb-6">{weatherData.location}</p>
