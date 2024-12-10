@@ -135,7 +135,7 @@ function sendText(phone: string, phoneProvider: string, message: string): boolea
   return sendEmail(SMSGatewayEmail, '', message);
 }
 
-function isItTimeToNotify(eventTime: number, notifyLeadTime: '1h' | '6h' | '12h' | '24h' | '48h'): boolean {
+function isItTimeToNotify(eventTime: number, notifyLeadTime: '1h' | '6h' | '12h' | '24h' | '48h' = '48h'): boolean {
   function getNotifyTimeInMs(frequency: '1h' | '6h' | '12h' | '24h' | '48h'): number {
     switch (frequency) {
       case '1h':
@@ -276,12 +276,12 @@ async function notifyUserWithNearbyEvents(userId: string) {
 
   try {
     // Fetch nearby events using the /api/events/near endpoint logic
-    const nearbyEventsResponse = await fetch(`https://stargazer320.vercel.app/api/events/near?lat=${latitude}&lon=${longitude}&rad=${radius}`);
+    const nearbyEventsResponse = await fetch(`https://localhost:3000/api/events/near?lat=${latitude}&lon=${longitude}&rad=${radius}`);
     const nearbyEvents: AstronomicalEvent[] = await nearbyEventsResponse.json();
 
     // Filter events that are upcoming based on the user's notification frequency
     const upcomingEvents = nearbyEvents.filter(event => 
-      isItTimeToNotify(new Date(event.startDate).getTime(), user.settings?.notifyFrequency || '48h')
+      isItTimeToNotify(new Date(event.startDate).getTime(), user.settings?.notifyFrequency)
     );
 
     // If no upcoming nearby events, return early
@@ -303,7 +303,7 @@ async function notifyUserWithNearbyEvents(userId: string) {
       message += ` • ${event.name || 'Unnamed Event'}: `;
       message += `${event.description || 'No description available'}\n`;
       message += `   Happening ${new Date(event.startDate).toLocaleString()} at: `;
-      message += `${event.location.coordinates.lat}, ${event.location.coordinates.lon}\n\n`;
+      message += `${event.location.coordinates[0]}, ${event.location.coordinates[1]}\n\n`;
     });
 
     const response: { email?: string; emailSent?: boolean; phone?: string; textSent?: boolean; } = {};
