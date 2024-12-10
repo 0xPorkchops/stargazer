@@ -179,12 +179,13 @@ export function Settings() {
                 <FormLabel>Latitude</FormLabel>
                 <FormControl>
                   <Input 
-                    type="number" 
-                    placeholder="-90 to 90" 
-                    min={-90}
-                    max={90}
-                    {...field}
-                    onChange={e => field.onChange(e.target.value)}
+                  type="number" 
+                  placeholder="-90 to 90" 
+                  min={-90}
+                  max={90}
+                  {...field}
+                  onChange={e => field.onChange(e.target.value)}
+                  onBlur={e => field.onChange(parseFloat(e.target.value))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -206,6 +207,7 @@ export function Settings() {
                     max={180}
                     {...field}
                     onChange={e => field.onChange(e.target.value)}
+                    onBlur={e => field.onChange(parseFloat(e.target.value))}
                   />
                 </FormControl>
                 <FormMessage />
