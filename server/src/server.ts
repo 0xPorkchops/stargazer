@@ -276,7 +276,7 @@ async function notifyUserWithNearbyEvents(userId: string) {
 
   try {
     // Fetch nearby events using the /api/events/near endpoint logic
-    const nearbyEventsResponse = await fetch(`https://localhost:3000/api/events/near?lat=${latitude}&lon=${longitude}&rad=${radius}`);
+    const nearbyEventsResponse = await fetch(`${process.env.URL}/api/events/near?lat=${latitude}&lon=${longitude}&rad=${radius}`);
     const nearbyEvents: AstronomicalEvent[] = await nearbyEventsResponse.json();
 
     // Filter events that are upcoming based on the user's notification frequency
