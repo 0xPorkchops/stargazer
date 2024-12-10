@@ -744,12 +744,12 @@ async function startServer() {
     app.get('/api/events/near', async (req, res) => {
       try {
         // Retrieve the location (latitude, longitude, and radius) from query parameters
-        let { lat = '42.3952875', lon = '-72.5310819', rad = '500' } = req.query;
+        let { paramLat = '42.3952875', paramLon = '-72.5310819', paramRadius = '500' } = req.query;
 
         // Parse the query parameters as floats
-        const latitude = parseFloat(lat as string);
-        const longitude = parseFloat(lon as string);
-        const radius = parseFloat(rad as string);
+        const latitude = parseFloat(paramLat as string);
+        const longitude = parseFloat(paramLon as string);
+        const radius = parseFloat(paramRadius as string);
 
         // Validate if the parameters are valid numbers
         if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {
