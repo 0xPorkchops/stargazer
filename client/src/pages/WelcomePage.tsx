@@ -12,7 +12,6 @@ function HomePage() {
   const makeUser = async () => {
     try {
       if (isLoaded && isSignedIn) {
-        console.log(import.meta.env.VITE_URL);
         const response = await fetch(`${import.meta.env.VITE_URL}/api/user`, {
           method: 'POST',
           headers: {
