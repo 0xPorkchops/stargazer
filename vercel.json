@@ -21,9 +21,11 @@
       "src": "/api/(.*)",
       "dest": "server/src/server.ts"
     },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
+    { "src": "/", "dest": "/" },
+    { "src": "/weather", "dest": "/" },
+    { "src": "/starmap", "dest": "/" },
+    { "src": "/aurora", "dest": "/" },
+    { "src": "/events", "dest": "/" }
+
   ]
 }

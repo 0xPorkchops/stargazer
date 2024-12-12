@@ -11,13 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Settings as SettingsIcon } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 const phoneProviders = ["Verizon", "T-Mobile", "AT&T"] as const
 const themes = ["system", "light", "dark"] as const
 
-// Mock functions
 const getUserSettings = async () => {
-  const response = await fetch('http://localhost:3000/api/settings', {
+  const response = await fetch('/api/settings', {
     method : "GET",
     credentials : "include",
   });
@@ -38,8 +38,9 @@ const getUserSettings = async () => {
   // }
 }
 
+
 const setUserSettings = async (values: FormValues) => {
-  const response = await fetch('http://localhost:3000/api/settings', {
+  const response = await fetch('/api/settings', {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -92,6 +93,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 export function Settings() {
+  const { toast } = useToast()
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -122,10 +124,15 @@ export function Settings() {
   async function onSubmit(values: FormValues) {
     try {
       await setUserSettings(values)
-      alert("Settings saved successfully!")
+      toast({
+        title: "Settings saved"
+      })
     } catch (error) {
       console.error("Error saving settings:", error)
-      alert("Failed to save settings")
+      toast({
+        title: "Could not save settings!",
+        description: error as string,
+      })
     }
   }
 
@@ -172,10 +179,13 @@ export function Settings() {
                 <FormLabel>Latitude</FormLabel>
                 <FormControl>
                   <Input 
-                    type="number" 
-                    placeholder="-90 to 90" 
-                    {...field}
-                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                  type="number" 
+                  placeholder="-90 to 90" 
+                  min={-90}
+                  max={90}
+                  {...field}
+                  onChange={e => field.onChange(e.target.value)}
+                  onBlur={e => field.onChange(parseFloat(e.target.value))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -193,8 +203,11 @@ export function Settings() {
                   <Input 
                     type="number" 
                     placeholder="-180 to 180" 
+                    min={-180}
+                    max={180}
                     {...field}
-                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                    onChange={e => field.onChange(e.target.value)}
+                    onBlur={e => field.onChange(parseFloat(e.target.value))}
                   />
                 </FormControl>
                 <FormMessage />
